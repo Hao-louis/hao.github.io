@@ -1,461 +1,889 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html>
+<!DOCTYPE html>
+
+<html lang="zh-TW">
+
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <meta http-equiv="Content-Style-Type" content="text/css">
-  <title></title>
-  <meta name="Generator" content="Cocoa HTML Writer">
-  <meta name="CocoaVersion" content="2575.5">
-  <style type="text/css">
-    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica; color: #000000}
-    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica; color: #000000; min-height: 14.0px}
-  </style>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <title>五乘五賽車挑戰</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+
+        body { background-color: #f1f5f9; touch-action: manipulation; }
+
+        /* 防止手機雙擊縮放 */
+
+    </style>
+
+    
+
+    <script type="importmap">
+
+    {
+
+      "imports": {
+
+        "react": "https://esm.sh/react@18.2.0",
+
+        "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+
+        "lucide-react": "https://esm.sh/lucide-react@0.263.1"
+
+      }
+
+    }
+
+    </script>
+
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
 </head>
+
 <body>
-<p class="p1">&lt;!DOCTYPE html&gt;</p>
-<p class="p1">&lt;html lang="zh-TW"&gt;</p>
-<p class="p1">&lt;head&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;meta charset="UTF-8"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;title&gt;五乘五賽車挑戰&lt;/title&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;script src="https://cdn.tailwindcss.com"&gt;&lt;/script&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;style&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>body { background-color: #f1f5f9; touch-action: manipulation; }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>/* 防止手機雙擊縮放 */</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;/style&gt;</p>
-<p class="p2"><span class="Apple-converted-space">    </span></p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;script type="importmap"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>{</p>
-<p class="p1"><span class="Apple-converted-space">      </span>"imports": {</p>
-<p class="p1"><span class="Apple-converted-space">        </span>"react": "https://esm.sh/react@18.2.0",</p>
-<p class="p1"><span class="Apple-converted-space">        </span>"react-dom/client": "https://esm.sh/react-dom@18.2.0/client",</p>
-<p class="p1"><span class="Apple-converted-space">        </span>"lucide-react": "https://esm.sh/lucide-react@0.263.1"</p>
-<p class="p1"><span class="Apple-converted-space">      </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;/script&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;script src="https://unpkg.com/@babel/standalone/babel.min.js"&gt;&lt;/script&gt;</p>
-<p class="p1">&lt;/head&gt;</p>
-<p class="p1">&lt;body&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;div id="root"&gt;&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;script type="text/babel" data-type="module"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>import React, { useState, useEffect, useRef } from 'react';</p>
-<p class="p1"><span class="Apple-converted-space">        </span>import { createRoot } from 'react-dom/client';</p>
-<p class="p1"><span class="Apple-converted-space">        </span>import { Play, RotateCcw, Flag, ArrowRight, RefreshCw, Trophy, Lightbulb } from 'lucide-react';</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>const GRID_SIZE = 5;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>const SPEED_MS = 300;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>const DIRECTIONS = [</p>
-<p class="p1"><span class="Apple-converted-space">          </span>{ dx: 0, dy: -1, label: 'N' },</p>
-<p class="p1"><span class="Apple-converted-space">          </span>{ dx: 1, dy: 0, label: 'E' },</p>
-<p class="p1"><span class="Apple-converted-space">          </span>{ dx: 0, dy: 1, label: 'S' },</p>
-<p class="p1"><span class="Apple-converted-space">          </span>{ dx: -1, dy: 0, label: 'W' },</p>
-<p class="p1"><span class="Apple-converted-space">        </span>];</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>const CarSideIcon = ({ className, style }) =&gt; (</p>
-<p class="p1"><span class="Apple-converted-space">          </span>&lt;svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" className={className} style={style}&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;path d="M2 10 V 15 H 4.5 C 4.5 13.6 5.6 12.5 7 12.5 C 8.4 12.5 9.5 13.6 9.5 15 H 14.5 C 14.5 13.6 15.6 12.5 17 12.5 C 18.4 12.5 19.5 13.6 19.5 15 H 22 V 11.5 L 18 11.5 L 16 7 H 6 L 2 10 Z" fill="currentColor" stroke="currentColor" strokeWidth="1" strokeLinejoin="round"/&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;path d="M7 8 H 15 L 16.5 10.5 H 6.5 L 7 8 Z" fill="white" fillOpacity="0.9" /&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;rect x="21" y="12" width="1.5" height="2" rx="0.5" fill="#FCD34D" /&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;circle cx="7" cy="15" r="2.5" fill="#1F2937" /&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;circle cx="7" cy="15" r="1" fill="#9CA3AF" /&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;circle cx="17" cy="15" r="2.5" fill="#1F2937" /&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;circle cx="17" cy="15" r="1" fill="#9CA3AF" /&gt;</p>
-<p class="p1"><span class="Apple-converted-space">          </span>&lt;/svg&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>);</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>const simulatePath = (start, goal, placedCards) =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">          </span>let car = { ...start };</p>
-<p class="p1"><span class="Apple-converted-space">          </span>let steps = 0;</p>
-<p class="p1"><span class="Apple-converted-space">          </span>const maxSteps = GRID_SIZE * GRID_SIZE * 4;<span class="Apple-converted-space"> </span></p>
-<p class="p1"><span class="Apple-converted-space">          </span>while (steps &lt; maxSteps) {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const dirVec = DIRECTIONS[car.dir];</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const nextX = car.x + dirVec.dx;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const nextY = car.y + dirVec.dy;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (nextX &lt; 0 || nextX &gt;= GRID_SIZE || nextY &lt; 0 || nextY &gt;= GRID_SIZE) return false;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>car.x = nextX; car.y = nextY;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (car.x === goal.x &amp;&amp; car.y === goal.y) return true;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const card = placedCards.find(c =&gt; c.x === car.x &amp;&amp; c.y === car.y);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (card) {</p>
-<p class="p1"><span class="Apple-converted-space">              </span>if (card.type === 'red') car.dir = (car.dir + 1) % 4;</p>
-<p class="p1"><span class="Apple-converted-space">              </span>else if (card.type === 'blue') car.dir = (car.dir + 3) % 4;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>}</p>
-<p class="p1"><span class="Apple-converted-space">            </span>steps++;</p>
-<p class="p1"><span class="Apple-converted-space">          </span>}</p>
-<p class="p1"><span class="Apple-converted-space">          </span>return false;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>};</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>const getRandomInt = (min, max) =&gt; Math.floor(Math.random() * (max - min + 1)) + min;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>const generateMustPassLevel = () =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">          </span>let attempts = 0;</p>
-<p class="p1"><span class="Apple-converted-space">          </span>while (attempts &lt; 3000) {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>attempts++;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const start = { x: getRandomInt(0, 4), y: getRandomInt(0, 4), dir: getRandomInt(0, 3) };</p>
-<p class="p1"><span class="Apple-converted-space">            </span>let turnsNeeded = ['red', 'red', 'blue', 'blue'];</p>
-<p class="p1"><span class="Apple-converted-space">            </span>for (let i = turnsNeeded.length - 1; i &gt; 0; i--) {</p>
-<p class="p1"><span class="Apple-converted-space">              </span>const j = Math.floor(Math.random() * (i + 1));</p>
-<p class="p1"><span class="Apple-converted-space">              </span>[turnsNeeded[i], turnsNeeded[j]] = [turnsNeeded[j], turnsNeeded[i]];</p>
-<p class="p1"><span class="Apple-converted-space">            </span>}</p>
-<p class="p1"><span class="Apple-converted-space">            </span>let current = { ...start };</p>
-<p class="p1"><span class="Apple-converted-space">            </span>let path = [{ x: current.x, y: current.y }];</p>
-<p class="p1"><span class="Apple-converted-space">            </span>let turnPositions = [];</p>
-<p class="p1"><span class="Apple-converted-space">            </span>let isValidPath = true;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>let visitedSet = new Set([`${start.x},${start.y}`]);<span class="Apple-converted-space"> </span></p>
-<p class="p1"><span class="Apple-converted-space">            </span>for (let i = 0; i &lt;= turnsNeeded.length; i++) {</p>
-<p class="p1"><span class="Apple-converted-space">              </span>const steps = getRandomInt(1, 3);</p>
-<p class="p1"><span class="Apple-converted-space">              </span>const dirVec = DIRECTIONS[current.dir];</p>
-<p class="p1"><span class="Apple-converted-space">              </span>for (let s = 0; s &lt; steps; s++) {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>current.x += dirVec.dx; current.y += dirVec.dy;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>if (current.x &lt; 0 || current.x &gt;= GRID_SIZE || current.y &lt; 0 || current.y &gt;= GRID_SIZE) { isValidPath = false; break; }</p>
-<p class="p1"><span class="Apple-converted-space">                </span>const key = `${current.x},${current.y}`;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>if (visitedSet.has(key)) { isValidPath = false; break; }</p>
-<p class="p1"><span class="Apple-converted-space">                </span>visitedSet.add(key);</p>
-<p class="p1"><span class="Apple-converted-space">                </span>path.push({ x: current.x, y: current.y });</p>
-<p class="p1"><span class="Apple-converted-space">              </span>}</p>
-<p class="p1"><span class="Apple-converted-space">              </span>if (!isValidPath) break;</p>
-<p class="p1"><span class="Apple-converted-space">              </span>if (i &lt; turnsNeeded.length) {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>const turnType = turnsNeeded[i];</p>
-<p class="p1"><span class="Apple-converted-space">                </span>turnPositions.push({ x: current.x, y: current.y, type: turnType });</p>
-<p class="p1"><span class="Apple-converted-space">                </span>if (turnType === 'red') current.dir = (current.dir + 1) % 4;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>else current.dir = (current.dir + 3) % 4;</p>
-<p class="p1"><span class="Apple-converted-space">              </span>}</p>
-<p class="p1"><span class="Apple-converted-space">            </span>}</p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (!isValidPath) continue;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const goal = { x: current.x, y: current.y };</p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (turnPositions.some(t =&gt; t.x === goal.x &amp;&amp; t.y === goal.y)) continue;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const candidates = path.slice(1, -1).filter(p =&gt; !turnPositions.some(t =&gt; t.x === p.x &amp;&amp; t.y === p.y));</p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (candidates.length &lt; 3) continue;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const uniqueCandidates = [...new Set(candidates.map(c =&gt; JSON.stringify(c)))].map(s =&gt; JSON.parse(s));</p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (uniqueCandidates.length &lt; 3) continue;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const yellows = [];</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const tempCandidates = [...uniqueCandidates];</p>
-<p class="p1"><span class="Apple-converted-space">            </span>for(let i=0; i&lt;3; i++) {</p>
-<p class="p1"><span class="Apple-converted-space">               </span>const idx = getRandomInt(0, tempCandidates.length - 1);</p>
-<p class="p1"><span class="Apple-converted-space">               </span>yellows.push(tempCandidates[idx]);</p>
-<p class="p1"><span class="Apple-converted-space">               </span>tempCandidates.splice(idx, 1);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>}</p>
-<p class="p1"><span class="Apple-converted-space">            </span>return {</p>
-<p class="p1"><span class="Apple-converted-space">              </span>id: `mp-${Date.now()}`,</p>
-<p class="p1"><span class="Apple-converted-space">              </span>start, goal, yellows,</p>
-<p class="p1"><span class="Apple-converted-space">              </span>inventory: { red: 2, blue: 2 },</p>
-<p class="p1"><span class="Apple-converted-space">              </span>preset: [],</p>
-<p class="p1"><span class="Apple-converted-space">              </span>solution: turnPositions,</p>
-<p class="p1"><span class="Apple-converted-space">              </span>description: "請使用2紅2藍，通過3個黃色檢查點，抵達綠色終點。",</p>
-<p class="p1"><span class="Apple-converted-space">              </span>winCondition: (v, t) =&gt; v === t</p>
-<p class="p1"><span class="Apple-converted-space">            </span>};</p>
-<p class="p1"><span class="Apple-converted-space">          </span>}</p>
-<p class="p1"><span class="Apple-converted-space">          </span>return generateMustPassLevel();<span class="Apple-converted-space"> </span></p>
-<p class="p1"><span class="Apple-converted-space">        </span>};</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>const generateRemoveCardLevel = () =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">          </span>let attempts = 0;</p>
-<p class="p1"><span class="Apple-converted-space">          </span>while (attempts &lt; 5000) {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>attempts++;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const start = { x: getRandomInt(0, 4), y: getRandomInt(0, 4), dir: getRandomInt(0, 3) };</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const isCaseA = Math.random() &gt; 0.5;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const pattern = isCaseA ? { red: 3, blue: 2 } : { red: 2, blue: 3 };</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const trapType = isCaseA ? 'blue' : 'red';<span class="Apple-converted-space"> </span></p>
-<p class="p1"><span class="Apple-converted-space">            </span>let turnsToPlace = [];</p>
-<p class="p1"><span class="Apple-converted-space">            </span>for(let i=0; i&lt;pattern.red; i++) turnsToPlace.push('red');</p>
-<p class="p1"><span class="Apple-converted-space">            </span>for(let i=0; i&lt;pattern.blue; i++) turnsToPlace.push('blue');</p>
-<p class="p1"><span class="Apple-converted-space">            </span>for (let i = turnsToPlace.length - 1; i &gt; 0; i--) {</p>
-<p class="p1"><span class="Apple-converted-space">              </span>const j = Math.floor(Math.random() * (i + 1));</p>
-<p class="p1"><span class="Apple-converted-space">              </span>[turnsToPlace[i], turnsToPlace[j]] = [turnsToPlace[j], turnsToPlace[i]];</p>
-<p class="p1"><span class="Apple-converted-space">            </span>}</p>
-<p class="p1"><span class="Apple-converted-space">            </span>let current = { ...start };</p>
-<p class="p1"><span class="Apple-converted-space">            </span>let pathCells = [{x: start.x, y: start.y}];<span class="Apple-converted-space"> </span></p>
-<p class="p1"><span class="Apple-converted-space">            </span>let placedCards = [];<span class="Apple-converted-space"> </span></p>
-<p class="p1"><span class="Apple-converted-space">            </span>let isValidPath = true;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>let visitedSet = new Set([`${start.x},${start.y}`]);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>for (let i = 0; i &lt;= turnsToPlace.length; i++) {</p>
-<p class="p1"><span class="Apple-converted-space">               </span>const steps = getRandomInt(1, 3);</p>
-<p class="p1"><span class="Apple-converted-space">               </span>const dirVec = DIRECTIONS[current.dir];</p>
-<p class="p1"><span class="Apple-converted-space">               </span>for(let s=0; s&lt;steps; s++) {</p>
-<p class="p1"><span class="Apple-converted-space">                  </span>current.x += dirVec.dx; current.y += dirVec.dy;</p>
-<p class="p1"><span class="Apple-converted-space">                  </span>if (current.x &lt; 0 || current.x &gt;= GRID_SIZE || current.y &lt; 0 || current.y &gt;= GRID_SIZE) { isValidPath = false; break; }</p>
-<p class="p1"><span class="Apple-converted-space">                  </span>const key = `${current.x},${current.y}`;</p>
-<p class="p1"><span class="Apple-converted-space">                  </span>if (visitedSet.has(key)) { isValidPath = false; break; }</p>
-<p class="p1"><span class="Apple-converted-space">                  </span>visitedSet.add(key);</p>
-<p class="p1"><span class="Apple-converted-space">                  </span>pathCells.push({x: current.x, y: current.y});</p>
-<p class="p1"><span class="Apple-converted-space">               </span>}</p>
-<p class="p1"><span class="Apple-converted-space">               </span>if(!isValidPath) break;</p>
-<p class="p1"><span class="Apple-converted-space">               </span>if (i &lt; turnsToPlace.length) {</p>
-<p class="p1"><span class="Apple-converted-space">                 </span>const type = turnsToPlace[i];</p>
-<p class="p1"><span class="Apple-converted-space">                 </span>placedCards.push({ x: current.x, y: current.y, type });</p>
-<p class="p1"><span class="Apple-converted-space">                 </span>if (type === 'red') current.dir = (current.dir + 1) % 4;</p>
-<p class="p1"><span class="Apple-converted-space">                 </span>else current.dir = (current.dir + 3) % 4;</p>
-<p class="p1"><span class="Apple-converted-space">               </span>}</p>
-<p class="p1"><span class="Apple-converted-space">            </span>}</p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (!isValidPath) continue;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const goal = { x: current.x, y: current.y };</p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (start.x === goal.x &amp;&amp; start.y === goal.y) continue;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (placedCards.some(c =&gt; c.x === goal.x &amp;&amp; c.y === goal.y)) continue;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const candidates = pathCells.filter(p =&gt; !(p.x === start.x &amp;&amp; p.y === start.y) &amp;&amp; !(p.x === goal.x &amp;&amp; p.y === goal.y) &amp;&amp; !placedCards.some(c =&gt; c.x === p.x &amp;&amp; c.y === p.y));</p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (candidates.length === 0) continue;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const uniqueCandidates = [...new Set(candidates.map(c =&gt; JSON.stringify(c)))].map(s =&gt; JSON.parse(s));</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const trapPos = uniqueCandidates[getRandomInt(0, uniqueCandidates.length - 1)];</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const trap = { x: trapPos.x, y: trapPos.y, type: trapType };</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const finalPreset = [...placedCards, trap];</p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (simulatePath(start, goal, finalPreset)) continue;<span class="Apple-converted-space"> </span></p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (!simulatePath(start, goal, placedCards)) continue;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>return {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>id: `rc-${Date.now()}`,</p>
-<p class="p1"><span class="Apple-converted-space">                </span>start, goal, yellows: [],</p>
-<p class="p1"><span class="Apple-converted-space">                </span>inventory: { red: 0, blue: 0 },</p>
-<p class="p1"><span class="Apple-converted-space">                </span>preset: finalPreset,</p>
-<p class="p1"><span class="Apple-converted-space">                </span>solution: trap,</p>
-<p class="p1"><span class="Apple-converted-space">                </span>description: "請移除路徑上多餘的卡片，讓車子抵達綠色終點。",</p>
-<p class="p1"><span class="Apple-converted-space">                </span>winCondition: () =&gt; true,</p>
-<p class="p1"><span class="Apple-converted-space">                </span>maxRemovals: 1</p>
-<p class="p1"><span class="Apple-converted-space">            </span>};</p>
-<p class="p1"><span class="Apple-converted-space">          </span>}</p>
-<p class="p1"><span class="Apple-converted-space">          </span>return generateRemoveCardLevel();</p>
-<p class="p1"><span class="Apple-converted-space">        </span>};</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>function CarLogicGame() {</p>
-<p class="p1"><span class="Apple-converted-space">          </span>const [mode, setMode] = useState('must_pass');</p>
-<p class="p1"><span class="Apple-converted-space">          </span>const [currentLevel, setCurrentLevel] = useState(null);</p>
-<p class="p1"><span class="Apple-converted-space">          </span>const [grid, setGrid] = useState([]);</p>
-<p class="p1"><span class="Apple-converted-space">          </span>const [car, setCar] = useState(null);</p>
-<p class="p1"><span class="Apple-converted-space">          </span>const [isPlaying, setIsPlaying] = useState(false);</p>
-<p class="p1"><span class="Apple-converted-space">          </span>const [gameStatus, setGameStatus] = useState('idle');</p>
-<p class="p1"><span class="Apple-converted-space">          </span>const [message, setMessage] = useState('');</p>
-<p class="p1"><span class="Apple-converted-space">          </span>const [visitedYellows, setVisitedYellows] = useState([]);</p>
-<p class="p1"><span class="Apple-converted-space">          </span>const [placedCounts, setPlacedCounts] = useState({ red: 0, blue: 0 });</p>
-<p class="p1"><span class="Apple-converted-space">          </span>const [selectedTool, setSelectedTool] = useState('red');</p>
-<p class="p1"><span class="Apple-converted-space">          </span>const [removedCount, setRemovedCount] = useState(0);</p>
-<p class="p1"><span class="Apple-converted-space">          </span>const timerRef = useRef(null);</p>
-<p class="p1"><span class="Apple-converted-space">          </span>const lastProcessedPos = useRef({ x: -1, y: -1 });</p>
-<p class="p1"><span class="Apple-converted-space">          </span>const carRef = useRef(null);</p>
-<p class="p1"><span class="Apple-converted-space">          </span>const visitedRef = useRef(visitedYellows);</p>
-<p class="p1"><span class="Apple-converted-space">          </span>const gridRef = useRef(grid);</p>
-<p class="p1"><span class="Apple-converted-space">          </span>const levelRef = useRef(currentLevel);</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">          </span>useEffect(() =&gt; { carRef.current = car; }, [car]);</p>
-<p class="p1"><span class="Apple-converted-space">          </span>useEffect(() =&gt; { visitedRef.current = visitedYellows; }, [visitedYellows]);</p>
-<p class="p1"><span class="Apple-converted-space">          </span>useEffect(() =&gt; { gridRef.current = grid; }, [grid]);</p>
-<p class="p1"><span class="Apple-converted-space">          </span>useEffect(() =&gt; { levelRef.current = currentLevel; }, [currentLevel]);</p>
-<p class="p1"><span class="Apple-converted-space">          </span>useEffect(() =&gt; { generateNewLevel(); }, [mode]);</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">          </span>const generateNewLevel = () =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">              </span>let level;</p>
-<p class="p1"><span class="Apple-converted-space">              </span>if (mode === 'must_pass') level = generateMustPassLevel();</p>
-<p class="p1"><span class="Apple-converted-space">              </span>else level = generateRemoveCardLevel();</p>
-<p class="p1"><span class="Apple-converted-space">              </span>setCurrentLevel(level);</p>
-<p class="p1"><span class="Apple-converted-space">          </span>};</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">          </span>useEffect(() =&gt; { if (currentLevel) resetGridState(); }, [currentLevel]);</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">          </span>const resetGridState = () =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (!currentLevel) return;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const newGrid = Array(GRID_SIZE * GRID_SIZE).fill(null).map((_, i) =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">              </span>const x = i % GRID_SIZE; const y = Math.floor(i / GRID_SIZE);</p>
-<p class="p1"><span class="Apple-converted-space">              </span>const preset = currentLevel.preset.find(p =&gt; p.x === x &amp;&amp; p.y === y);</p>
-<p class="p1"><span class="Apple-converted-space">              </span>const isYellow = currentLevel.yellows.find(p =&gt; p.x === x &amp;&amp; p.y === y);</p>
-<p class="p1"><span class="Apple-converted-space">              </span>const isStart = currentLevel.start.x === x &amp;&amp; currentLevel.start.y === y;</p>
-<p class="p1"><span class="Apple-converted-space">              </span>const isGoal = currentLevel.goal.x === x &amp;&amp; currentLevel.goal.y === y;</p>
-<p class="p1"><span class="Apple-converted-space">              </span>return { x, y, type: preset ? preset.type : (isYellow ? 'yellow' : 'empty'), isStart, isGoal, originalType: preset ? preset.type : (isYellow ? 'yellow' : 'empty') };</p>
-<p class="p1"><span class="Apple-converted-space">            </span>});</p>
-<p class="p1"><span class="Apple-converted-space">            </span>setGrid(newGrid);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>setCar({ ...currentLevel.start });</p>
-<p class="p1"><span class="Apple-converted-space">            </span>carRef.current = { ...currentLevel.start };<span class="Apple-converted-space"> </span></p>
-<p class="p1"><span class="Apple-converted-space">            </span>setIsPlaying(false);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>setGameStatus('idle');</p>
-<p class="p1"><span class="Apple-converted-space">            </span>setMessage('');</p>
-<p class="p1"><span class="Apple-converted-space">            </span>setVisitedYellows([]);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>setPlacedCounts({ red: 0, blue: 0 });</p>
-<p class="p1"><span class="Apple-converted-space">            </span>setRemovedCount(0);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>lastProcessedPos.current = { x: -1, y: -1 };</p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (timerRef.current) clearInterval(timerRef.current);</p>
-<p class="p1"><span class="Apple-converted-space">          </span>};</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">          </span>const endGame = (status, msg) =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>clearInterval(timerRef.current);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>setIsPlaying(false);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>setGameStatus(status);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>setMessage(msg);</p>
-<p class="p1"><span class="Apple-converted-space">          </span>};</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">          </span>const moveCar = () =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const prevCar = carRef.current;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (!prevCar) return;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const currentDir = DIRECTIONS[prevCar.dir];</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const nextX = prevCar.x + currentDir.dx;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const nextY = prevCar.y + currentDir.dy;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (nextX &lt; 0 || nextX &gt;= GRID_SIZE || nextY &lt; 0 || nextY &gt;= GRID_SIZE) { endGame('lost', "哎呀！車子撞到牆壁了！"); return; }</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const nextCar = { ...prevCar, x: nextX, y: nextY };</p>
-<p class="p1"><span class="Apple-converted-space">            </span>setCar(nextCar);</p>
-<p class="p1"><span class="Apple-converted-space">          </span>};</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">          </span>const showAnswer = () =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (!currentLevel) return;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (isPlaying) {<span class="Apple-converted-space"> </span></p>
-<p class="p1"><span class="Apple-converted-space">                </span>clearInterval(timerRef.current); setIsPlaying(false); setGameStatus('idle'); setCar({ ...currentLevel.start }); carRef.current = { ...currentLevel.start };</p>
-<p class="p1"><span class="Apple-converted-space">                </span>lastProcessedPos.current = { x: -1, y: -1 }; setVisitedYellows([]);<span class="Apple-converted-space"> </span></p>
-<p class="p1"><span class="Apple-converted-space">            </span>}</p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (mode === 'must_pass') {</p>
-<p class="p1"><span class="Apple-converted-space">              </span>const newGrid = grid.map(cell =&gt; ({ ...cell, type: cell.originalType === 'yellow' ? 'yellow' : 'empty' }));</p>
-<p class="p1"><span class="Apple-converted-space">              </span>currentLevel.solution.forEach(sol =&gt; { const index = sol.y * GRID_SIZE + sol.x; newGrid[index].type = sol.type; });</p>
-<p class="p1"><span class="Apple-converted-space">              </span>setGrid(newGrid);</p>
-<p class="p1"><span class="Apple-converted-space">              </span>setPlacedCounts(currentLevel.inventory);</p>
-<p class="p1"><span class="Apple-converted-space">              </span>setMessage("已顯示參考答案");</p>
-<p class="p1"><span class="Apple-converted-space">            </span>} else if (mode === 'remove_card') {</p>
-<p class="p1"><span class="Apple-converted-space">              </span>const newGrid = grid.map(cell =&gt; ({ ...cell, type: cell.originalType }));</p>
-<p class="p1"><span class="Apple-converted-space">              </span>const sol = currentLevel.solution;</p>
-<p class="p1"><span class="Apple-converted-space">              </span>const index = sol.y * GRID_SIZE + sol.x;</p>
-<p class="p1"><span class="Apple-converted-space">              </span>newGrid[index].type = 'empty';</p>
-<p class="p1"><span class="Apple-converted-space">              </span>setGrid(newGrid);</p>
-<p class="p1"><span class="Apple-converted-space">              </span>setRemovedCount(1);</p>
-<p class="p1"><span class="Apple-converted-space">              </span>setMessage("已顯示參考答案");</p>
-<p class="p1"><span class="Apple-converted-space">            </span>}</p>
-<p class="p1"><span class="Apple-converted-space">          </span>};</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">          </span>const handleCellClick = (index) =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (isPlaying || gameStatus !== 'idle') return;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const cell = grid[index];</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const newGrid = [...grid];</p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (cell.isStart || cell.isGoal) return;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (mode === 'must_pass') {</p>
-<p class="p1"><span class="Apple-converted-space">              </span>if (cell.type === 'yellow') { setMessage("檢查點不能覆蓋！"); return; }</p>
-<p class="p1"><span class="Apple-converted-space">              </span>if (cell.type !== 'empty') {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>const typeToRemove = cell.type;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>newGrid[index].type = 'empty';</p>
-<p class="p1"><span class="Apple-converted-space">                </span>setPlacedCounts(prev =&gt; ({ ...prev, [typeToRemove]: prev[typeToRemove] - 1 }));</p>
-<p class="p1"><span class="Apple-converted-space">              </span>} else {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>if (placedCounts[selectedTool] &lt; currentLevel.inventory[selectedTool]) {</p>
-<p class="p1"><span class="Apple-converted-space">                  </span>newGrid[index].type = selectedTool;</p>
-<p class="p1"><span class="Apple-converted-space">                  </span>setPlacedCounts(prev =&gt; ({ ...prev, [selectedTool]: prev[selectedTool] + 1 }));</p>
-<p class="p1"><span class="Apple-converted-space">                </span>} else { setMessage(`您的卡片用完了！`); }</p>
-<p class="p1"><span class="Apple-converted-space">              </span>}</p>
-<p class="p1"><span class="Apple-converted-space">            </span>} else if (mode === 'remove_card') {</p>
-<p class="p1"><span class="Apple-converted-space">              </span>if (cell.originalType === 'red' || cell.originalType === 'blue') {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>if (cell.type === 'empty') {</p>
-<p class="p1"><span class="Apple-converted-space">                  </span>newGrid[index].type = cell.originalType;</p>
-<p class="p1"><span class="Apple-converted-space">                  </span>setRemovedCount(prev =&gt; prev - 1);</p>
-<p class="p1"><span class="Apple-converted-space">                </span>} else {</p>
-<p class="p1"><span class="Apple-converted-space">                  </span>if (removedCount &lt; currentLevel.maxRemovals) {</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>newGrid[index].type = 'empty';</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>setRemovedCount(prev =&gt; prev + 1);</p>
-<p class="p1"><span class="Apple-converted-space">                  </span>} else { setMessage("只能移除一張！"); }</p>
-<p class="p1"><span class="Apple-converted-space">                </span>}</p>
-<p class="p1"><span class="Apple-converted-space">              </span>}</p>
-<p class="p1"><span class="Apple-converted-space">            </span>}</p>
-<p class="p1"><span class="Apple-converted-space">            </span>setGrid(newGrid);</p>
-<p class="p1"><span class="Apple-converted-space">          </span>};</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">          </span>const startGame = () =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (mode === 'must_pass') {</p>
-<p class="p1"><span class="Apple-converted-space">              </span>if (placedCounts.red !== currentLevel.inventory.red || placedCounts.blue !== currentLevel.inventory.blue) { setMessage("請先放完所有卡片！"); return; }</p>
-<p class="p1"><span class="Apple-converted-space">            </span>}</p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (mode === 'remove_card') { if (removedCount !== 1) { setMessage("請移除一張卡片！"); return; } }</p>
-<p class="p1"><span class="Apple-converted-space">            </span>lastProcessedPos.current = { x: -1, y: -1 };</p>
-<p class="p1"><span class="Apple-converted-space">            </span>setIsPlaying(true); setGameStatus('running'); setMessage('車子出發了！');</p>
-<p class="p1"><span class="Apple-converted-space">            </span>timerRef.current = setInterval(moveCar, SPEED_MS);</p>
-<p class="p1"><span class="Apple-converted-space">          </span>};</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">          </span>useEffect(() =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (!isPlaying || !car || !currentLevel) return;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (car.x === lastProcessedPos.current.x &amp;&amp; car.y === lastProcessedPos.current.y) return;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>lastProcessedPos.current = { x: car.x, y: car.y };</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const currentCell = grid.find(c =&gt; c.x === car.x &amp;&amp; c.y === car.y);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (!currentCell) return;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (currentCell.isGoal) {</p>
-<p class="p1"><span class="Apple-converted-space">              </span>const win = currentLevel.winCondition(visitedRef.current.length, currentLevel.yellows.length);</p>
-<p class="p1"><span class="Apple-converted-space">              </span>if (win) endGame('won', "恭喜！成功抵達終點！");</p>
-<p class="p1"><span class="Apple-converted-space">              </span>else endGame('lost', `失敗：只過了 ${visitedRef.current.length} 個檢查點！`);</p>
-<p class="p1"><span class="Apple-converted-space">              </span>return;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>}</p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (currentCell.type === 'yellow') {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>const id = `${car.x},${car.y}`;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>if (!visitedRef.current.includes(id)) setVisitedYellows(prev =&gt; [...prev, id]);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>}</p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (currentCell.type === 'red') setCar(prev =&gt; ({ ...prev, dir: (prev.dir + 1) % 4 }));</p>
-<p class="p1"><span class="Apple-converted-space">            </span>else if (currentCell.type === 'blue') setCar(prev =&gt; ({ ...prev, dir: (prev.dir + 3) % 4 }));</p>
-<p class="p1"><span class="Apple-converted-space">          </span>}, [car, isPlaying, grid, currentLevel]);</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">          </span>const getCarStyle = (dirIndex) =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const transition = 'transform 0.3s ease-in-out';</p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (dirIndex === 3) return { transform: 'scaleX(-1)', transition };</p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (dirIndex === 1) return { transform: 'rotate(0deg)', transition };</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const deg = (dirIndex - 1) * 90;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>return { transform: `rotate(${deg}deg)`, transition };</p>
-<p class="p1"><span class="Apple-converted-space">          </span>};</p>
-<p class="p1"><span class="Apple-converted-space">          </span>const getStartArrowRotation = () =&gt; currentLevel ? (currentLevel.start.dir - 1) * 90 : 0;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">          </span>if (!currentLevel) return &lt;div className="min-h-screen flex items-center justify-center"&gt;載入中...&lt;/div&gt;;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">          </span>return (</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;div className="min-h-screen bg-slate-100 p-2 font-sans text-slate-800 flex flex-col items-center justify-start"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">              </span>&lt;div className="max-w-xs w-full mb-2 text-center"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;h1 className="text-xl font-bold text-slate-800 mb-1 flex items-center justify-center gap-2"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                  </span>&lt;Trophy className="w-5 h-5 text-amber-500" /&gt; 五乘五賽車挑戰</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;/h1&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;div className="mb-2 bg-white p-2 rounded-lg shadow-sm border border-slate-200"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                   </span>&lt;div className="flex flex-col gap-1 text-[10px] text-slate-600 font-medium"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                     </span>&lt;div className="flex justify-center gap-4"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div className="flex items-center gap-1"&gt;&lt;div className="w-3 h-3 border-2 border-slate-900 rounded flex items-center justify-center"&gt;&lt;ArrowRight className="w-2 h-2" /&gt;&lt;/div&gt; 起點&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div className="flex items-center gap-1"&gt;&lt;div className="w-3 h-3 border-2 border-green-500 rounded"&gt;&lt;/div&gt; 終點&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                     </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                     </span>&lt;div className="flex justify-center gap-3"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div className="flex items-center gap-1"&gt;&lt;div className="w-3 h-3 bg-red-400 rounded"&gt;&lt;/div&gt; 右轉&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div className="flex items-center gap-1"&gt;&lt;div className="w-3 h-3 bg-blue-400 rounded"&gt;&lt;/div&gt; 左轉&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div className="flex items-center gap-1"&gt;&lt;div className="w-3 h-3 bg-amber-300 rounded"&gt;&lt;/div&gt; 檢查點&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                     </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                   </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;div className="flex bg-white rounded-lg p-0.5 shadow-sm mb-2"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                  </span>&lt;button onClick={() =&gt; setMode('must_pass')} className={`flex-1 py-1.5 px-2 rounded-md text-xs font-medium transition-colors ${mode === 'must_pass' ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:bg-slate-50'}`}&gt;必經之路&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                  </span>&lt;button onClick={() =&gt; setMode('remove_card')} className={`flex-1 py-1.5 px-2 rounded-md text-xs font-medium transition-colors ${mode === 'remove_card' ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:bg-slate-50'}`}&gt;移除卡片&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;div className="bg-white p-2 rounded-lg shadow-sm border border-slate-200 min-h-[40px] flex flex-col justify-center relative overflow-hidden"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                  </span>&lt;div className="absolute top-0 right-0 p-0.5"&gt;&lt;div className="bg-slate-100 text-slate-400 text-[8px] px-1 rounded"&gt;ID: {currentLevel.id.slice(-4)}&lt;/div&gt;&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                  </span>&lt;p className="text-xs text-slate-700 font-medium leading-tight px-1"&gt;{currentLevel.description}&lt;/p&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">              </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">              </span>&lt;div className="relative bg-white p-3 rounded-xl shadow-lg border border-slate-200 w-full max-w-xs"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;div className={`h-6 mb-1 text-center font-bold text-xs flex items-center justify-center rounded transition-colors ${gameStatus === 'won' ? 'text-green-600 bg-green-50' : gameStatus === 'lost' ? 'text-red-600 bg-red-50' : 'text-indigo-600'}`}&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                  </span>{message || (mode === 'must_pass' ? `放置: ${currentLevel.inventory.red}紅 ${currentLevel.inventory.blue}藍` : "請移除 1 張卡片...")}</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;div className="grid gap-1 bg-slate-300 p-1 rounded mb-2 mx-auto" style={{ gridTemplateColumns: `repeat(${GRID_SIZE}, minmax(0, 1fr))`, width: '100%', maxWidth: '280px', aspectRatio: '1/1' }}&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                  </span>{grid.map((cell, idx) =&gt; (</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div key={`${cell.x}-${cell.y}`} onClick={() =&gt; handleCellClick(idx)} className={`relative rounded flex items-center justify-center cursor-pointer transition-all duration-200 aspect-square ${cell.type === 'red' ? 'bg-red-400' : cell.type === 'blue' ? 'bg-blue-400' : cell.type === 'yellow' ? 'bg-amber-300' : 'bg-white'} ${cell.isStart ? 'ring-2 ring-inset ring-slate-900' : ''} ${cell.isGoal ? 'ring-2 ring-inset ring-green-500' : ''}`}&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                      </span>{cell.type === 'yellow' &amp;&amp; &lt;div className={`w-2.5 h-2.5 rounded-full ${visitedYellows.includes(`${cell.x},${cell.y}`) ? 'bg-green-600' : 'bg-amber-600'}`} /&gt;}</p>
-<p class="p1"><span class="Apple-converted-space">                      </span>{cell.isStart &amp;&amp; &lt;ArrowRight className="text-slate-900 w-1/2 h-1/2 absolute opacity-40" style={{ transform: `rotate(${getStartArrowRotation()}deg)` }} /&gt;}</p>
-<p class="p1"><span class="Apple-converted-space">                      </span>{cell.isGoal &amp;&amp; &lt;Flag className="text-green-600 w-2/3 h-2/3 absolute bottom-1 right-1 opacity-80" /&gt;}</p>
-<p class="p1"><span class="Apple-converted-space">                      </span>{car &amp;&amp; car.x === cell.x &amp;&amp; car.y === cell.y &amp;&amp; (&lt;div className="absolute inset-0 z-10 flex items-center justify-center" style={getCarStyle(car.dir)}&gt;&lt;CarSideIcon className="w-4/5 h-4/5 text-indigo-700 fill-current drop-shadow-md" /&gt;&lt;/div&gt;)}</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                  </span>))}</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;div className="flex flex-col gap-2"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                  </span>&lt;div className="min-h-[50px] flex flex-col justify-center"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>{mode === 'must_pass' &amp;&amp; (</p>
-<p class="p1"><span class="Apple-converted-space">                      </span>&lt;div className="flex justify-center gap-4"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;button onClick={() =&gt; setSelectedTool('red')} className={`flex items-center gap-2 px-3 py-1 rounded border transition-all ${selectedTool === 'red' ? 'border-red-500 bg-red-50' : 'border-slate-200'}`}&gt;&lt;div className="bg-red-400 w-3 h-3 rounded"&gt;&lt;/div&gt;&lt;span className="text-xs font-bold text-slate-600"&gt;x {currentLevel.inventory.red - placedCounts.red}&lt;/span&gt;&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;button onClick={() =&gt; setSelectedTool('blue')} className={`flex items-center gap-2 px-3 py-1 rounded border transition-all ${selectedTool === 'blue' ? 'border-blue-500 bg-blue-50' : 'border-slate-200'}`}&gt;&lt;div className="bg-blue-400 w-3 h-3 rounded"&gt;&lt;/div&gt;&lt;span className="text-xs font-bold text-slate-600"&gt;x {currentLevel.inventory.blue - placedCounts.blue}&lt;/span&gt;&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                      </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>)}</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>{mode === 'remove_card' &amp;&amp; (&lt;div className="flex justify-center items-center h-full"&gt;&lt;div className="text-center text-xs text-slate-500 bg-slate-50 px-3 py-1 rounded border border-slate-200"&gt;已移除: &lt;span className="font-bold text-indigo-600"&gt;{removedCount}&lt;/span&gt; / 1&lt;/div&gt;&lt;/div&gt;)}</p>
-<p class="p1"><span class="Apple-converted-space">                  </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                  </span>&lt;div className="flex flex-col gap-2 border-t pt-2"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;button onClick={startGame} disabled={isPlaying || gameStatus === 'won'} className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white py-2 px-4 rounded-lg flex items-center justify-center gap-2 font-bold shadow-sm text-sm"&gt;&lt;Play className="w-4 h-4" /&gt; 出發&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div className="flex gap-2"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;button onClick={resetGridState} className="flex-1 bg-white border border-slate-300 text-slate-700 py-2 px-2 rounded-lg flex items-center justify-center gap-1 font-bold text-xs"&gt;&lt;RotateCcw className="w-3 h-3" /&gt; 重置&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;button onClick={showAnswer} className="flex-1 bg-white border border-slate-300 text-slate-700 py-2 px-2 rounded-lg flex items-center justify-center gap-1 font-bold text-xs"&gt;&lt;Lightbulb className="w-3 h-3" /&gt; 看答案&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;button onClick={generateNewLevel} className="w-full bg-amber-100 text-amber-800 py-2 px-3 rounded-lg flex items-center justify-center gap-2 font-bold shadow-sm mt-1 text-xs"&gt;&lt;RefreshCw className="w-3 h-3" /&gt; 下一題 (隨機)&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                  </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">              </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">          </span>);</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>const root = createRoot(document.getElementById('root'));</p>
-<p class="p1"><span class="Apple-converted-space">        </span>root.render(&lt;CarLogicGame /&gt;);</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;/script&gt;</p>
-<p class="p1">&lt;/body&gt;</p>
-<p class="p1">&lt;/html&gt;</p>
+
+    <div id="root"></div>
+
+
+
+    <script type="text/babel" data-type="module">
+
+        import React, { useState, useEffect, useRef } from 'react';
+
+        import { createRoot } from 'react-dom/client';
+
+        import { Play, RotateCcw, Flag, ArrowRight, RefreshCw, Trophy, Lightbulb } from 'lucide-react';
+
+
+
+        const GRID_SIZE = 5;
+
+        const SPEED_MS = 300;
+
+        const DIRECTIONS = [
+
+          { dx: 0, dy: -1, label: 'N' },
+
+          { dx: 1, dy: 0, label: 'E' },
+
+          { dx: 0, dy: 1, label: 'S' },
+
+          { dx: -1, dy: 0, label: 'W' },
+
+        ];
+
+
+
+        const CarSideIcon = ({ className, style }) => (
+
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" className={className} style={style}>
+
+            <path d="M2 10 V 15 H 4.5 C 4.5 13.6 5.6 12.5 7 12.5 C 8.4 12.5 9.5 13.6 9.5 15 H 14.5 C 14.5 13.6 15.6 12.5 17 12.5 C 18.4 12.5 19.5 13.6 19.5 15 H 22 V 11.5 L 18 11.5 L 16 7 H 6 L 2 10 Z" fill="currentColor" stroke="currentColor" strokeWidth="1" strokeLinejoin="round"/>
+
+            <path d="M7 8 H 15 L 16.5 10.5 H 6.5 L 7 8 Z" fill="white" fillOpacity="0.9" />
+
+            <rect x="21" y="12" width="1.5" height="2" rx="0.5" fill="#FCD34D" />
+
+            <circle cx="7" cy="15" r="2.5" fill="#1F2937" />
+
+            <circle cx="7" cy="15" r="1" fill="#9CA3AF" />
+
+            <circle cx="17" cy="15" r="2.5" fill="#1F2937" />
+
+            <circle cx="17" cy="15" r="1" fill="#9CA3AF" />
+
+          </svg>
+
+        );
+
+
+
+        const simulatePath = (start, goal, placedCards) => {
+
+          let car = { ...start };
+
+          let steps = 0;
+
+          const maxSteps = GRID_SIZE * GRID_SIZE * 4; 
+
+          while (steps < maxSteps) {
+
+            const dirVec = DIRECTIONS[car.dir];
+
+            const nextX = car.x + dirVec.dx;
+
+            const nextY = car.y + dirVec.dy;
+
+            if (nextX < 0 || nextX >= GRID_SIZE || nextY < 0 || nextY >= GRID_SIZE) return false;
+
+            car.x = nextX; car.y = nextY;
+
+            if (car.x === goal.x && car.y === goal.y) return true;
+
+            const card = placedCards.find(c => c.x === car.x && c.y === car.y);
+
+            if (card) {
+
+              if (card.type === 'red') car.dir = (car.dir + 1) % 4;
+
+              else if (card.type === 'blue') car.dir = (car.dir + 3) % 4;
+
+            }
+
+            steps++;
+
+          }
+
+          return false;
+
+        };
+
+
+
+        const getRandomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+
+
+
+        const generateMustPassLevel = () => {
+
+          let attempts = 0;
+
+          while (attempts < 3000) {
+
+            attempts++;
+
+            const start = { x: getRandomInt(0, 4), y: getRandomInt(0, 4), dir: getRandomInt(0, 3) };
+
+            let turnsNeeded = ['red', 'red', 'blue', 'blue'];
+
+            for (let i = turnsNeeded.length - 1; i > 0; i--) {
+
+              const j = Math.floor(Math.random() * (i + 1));
+
+              [turnsNeeded[i], turnsNeeded[j]] = [turnsNeeded[j], turnsNeeded[i]];
+
+            }
+
+            let current = { ...start };
+
+            let path = [{ x: current.x, y: current.y }];
+
+            let turnPositions = [];
+
+            let isValidPath = true;
+
+            let visitedSet = new Set([`${start.x},${start.y}`]); 
+
+            for (let i = 0; i <= turnsNeeded.length; i++) {
+
+              const steps = getRandomInt(1, 3);
+
+              const dirVec = DIRECTIONS[current.dir];
+
+              for (let s = 0; s < steps; s++) {
+
+                current.x += dirVec.dx; current.y += dirVec.dy;
+
+                if (current.x < 0 || current.x >= GRID_SIZE || current.y < 0 || current.y >= GRID_SIZE) { isValidPath = false; break; }
+
+                const key = `${current.x},${current.y}`;
+
+                if (visitedSet.has(key)) { isValidPath = false; break; }
+
+                visitedSet.add(key);
+
+                path.push({ x: current.x, y: current.y });
+
+              }
+
+              if (!isValidPath) break;
+
+              if (i < turnsNeeded.length) {
+
+                const turnType = turnsNeeded[i];
+
+                turnPositions.push({ x: current.x, y: current.y, type: turnType });
+
+                if (turnType === 'red') current.dir = (current.dir + 1) % 4;
+
+                else current.dir = (current.dir + 3) % 4;
+
+              }
+
+            }
+
+            if (!isValidPath) continue;
+
+            const goal = { x: current.x, y: current.y };
+
+            if (turnPositions.some(t => t.x === goal.x && t.y === goal.y)) continue;
+
+            const candidates = path.slice(1, -1).filter(p => !turnPositions.some(t => t.x === p.x && t.y === p.y));
+
+            if (candidates.length < 3) continue;
+
+            const uniqueCandidates = [...new Set(candidates.map(c => JSON.stringify(c)))].map(s => JSON.parse(s));
+
+            if (uniqueCandidates.length < 3) continue;
+
+            const yellows = [];
+
+            const tempCandidates = [...uniqueCandidates];
+
+            for(let i=0; i<3; i++) {
+
+               const idx = getRandomInt(0, tempCandidates.length - 1);
+
+               yellows.push(tempCandidates[idx]);
+
+               tempCandidates.splice(idx, 1);
+
+            }
+
+            return {
+
+              id: `mp-${Date.now()}`,
+
+              start, goal, yellows,
+
+              inventory: { red: 2, blue: 2 },
+
+              preset: [],
+
+              solution: turnPositions,
+
+              description: "請使用2紅2藍，通過3個黃色檢查點，抵達綠色終點。",
+
+              winCondition: (v, t) => v === t
+
+            };
+
+          }
+
+          return generateMustPassLevel(); 
+
+        };
+
+
+
+        const generateRemoveCardLevel = () => {
+
+          let attempts = 0;
+
+          while (attempts < 5000) {
+
+            attempts++;
+
+            const start = { x: getRandomInt(0, 4), y: getRandomInt(0, 4), dir: getRandomInt(0, 3) };
+
+            const isCaseA = Math.random() > 0.5;
+
+            const pattern = isCaseA ? { red: 3, blue: 2 } : { red: 2, blue: 3 };
+
+            const trapType = isCaseA ? 'blue' : 'red'; 
+
+            let turnsToPlace = [];
+
+            for(let i=0; i<pattern.red; i++) turnsToPlace.push('red');
+
+            for(let i=0; i<pattern.blue; i++) turnsToPlace.push('blue');
+
+            for (let i = turnsToPlace.length - 1; i > 0; i--) {
+
+              const j = Math.floor(Math.random() * (i + 1));
+
+              [turnsToPlace[i], turnsToPlace[j]] = [turnsToPlace[j], turnsToPlace[i]];
+
+            }
+
+            let current = { ...start };
+
+            let pathCells = [{x: start.x, y: start.y}]; 
+
+            let placedCards = []; 
+
+            let isValidPath = true;
+
+            let visitedSet = new Set([`${start.x},${start.y}`]);
+
+            for (let i = 0; i <= turnsToPlace.length; i++) {
+
+               const steps = getRandomInt(1, 3);
+
+               const dirVec = DIRECTIONS[current.dir];
+
+               for(let s=0; s<steps; s++) {
+
+                  current.x += dirVec.dx; current.y += dirVec.dy;
+
+                  if (current.x < 0 || current.x >= GRID_SIZE || current.y < 0 || current.y >= GRID_SIZE) { isValidPath = false; break; }
+
+                  const key = `${current.x},${current.y}`;
+
+                  if (visitedSet.has(key)) { isValidPath = false; break; }
+
+                  visitedSet.add(key);
+
+                  pathCells.push({x: current.x, y: current.y});
+
+               }
+
+               if(!isValidPath) break;
+
+               if (i < turnsToPlace.length) {
+
+                 const type = turnsToPlace[i];
+
+                 placedCards.push({ x: current.x, y: current.y, type });
+
+                 if (type === 'red') current.dir = (current.dir + 1) % 4;
+
+                 else current.dir = (current.dir + 3) % 4;
+
+               }
+
+            }
+
+            if (!isValidPath) continue;
+
+            const goal = { x: current.x, y: current.y };
+
+            if (start.x === goal.x && start.y === goal.y) continue;
+
+            if (placedCards.some(c => c.x === goal.x && c.y === goal.y)) continue;
+
+            const candidates = pathCells.filter(p => !(p.x === start.x && p.y === start.y) && !(p.x === goal.x && p.y === goal.y) && !placedCards.some(c => c.x === p.x && c.y === p.y));
+
+            if (candidates.length === 0) continue;
+
+            const uniqueCandidates = [...new Set(candidates.map(c => JSON.stringify(c)))].map(s => JSON.parse(s));
+
+            const trapPos = uniqueCandidates[getRandomInt(0, uniqueCandidates.length - 1)];
+
+            const trap = { x: trapPos.x, y: trapPos.y, type: trapType };
+
+            const finalPreset = [...placedCards, trap];
+
+            if (simulatePath(start, goal, finalPreset)) continue; 
+
+            if (!simulatePath(start, goal, placedCards)) continue;
+
+            return {
+
+                id: `rc-${Date.now()}`,
+
+                start, goal, yellows: [],
+
+                inventory: { red: 0, blue: 0 },
+
+                preset: finalPreset,
+
+                solution: trap,
+
+                description: "請移除路徑上多餘的卡片，讓車子抵達綠色終點。",
+
+                winCondition: () => true,
+
+                maxRemovals: 1
+
+            };
+
+          }
+
+          return generateRemoveCardLevel();
+
+        };
+
+
+
+        function CarLogicGame() {
+
+          const [mode, setMode] = useState('must_pass');
+
+          const [currentLevel, setCurrentLevel] = useState(null);
+
+          const [grid, setGrid] = useState([]);
+
+          const [car, setCar] = useState(null);
+
+          const [isPlaying, setIsPlaying] = useState(false);
+
+          const [gameStatus, setGameStatus] = useState('idle');
+
+          const [message, setMessage] = useState('');
+
+          const [visitedYellows, setVisitedYellows] = useState([]);
+
+          const [placedCounts, setPlacedCounts] = useState({ red: 0, blue: 0 });
+
+          const [selectedTool, setSelectedTool] = useState('red');
+
+          const [removedCount, setRemovedCount] = useState(0);
+
+          const timerRef = useRef(null);
+
+          const lastProcessedPos = useRef({ x: -1, y: -1 });
+
+          const carRef = useRef(null);
+
+          const visitedRef = useRef(visitedYellows);
+
+          const gridRef = useRef(grid);
+
+          const levelRef = useRef(currentLevel);
+
+
+
+          useEffect(() => { carRef.current = car; }, [car]);
+
+          useEffect(() => { visitedRef.current = visitedYellows; }, [visitedYellows]);
+
+          useEffect(() => { gridRef.current = grid; }, [grid]);
+
+          useEffect(() => { levelRef.current = currentLevel; }, [currentLevel]);
+
+          useEffect(() => { generateNewLevel(); }, [mode]);
+
+
+
+          const generateNewLevel = () => {
+
+              let level;
+
+              if (mode === 'must_pass') level = generateMustPassLevel();
+
+              else level = generateRemoveCardLevel();
+
+              setCurrentLevel(level);
+
+          };
+
+
+
+          useEffect(() => { if (currentLevel) resetGridState(); }, [currentLevel]);
+
+
+
+          const resetGridState = () => {
+
+            if (!currentLevel) return;
+
+            const newGrid = Array(GRID_SIZE * GRID_SIZE).fill(null).map((_, i) => {
+
+              const x = i % GRID_SIZE; const y = Math.floor(i / GRID_SIZE);
+
+              const preset = currentLevel.preset.find(p => p.x === x && p.y === y);
+
+              const isYellow = currentLevel.yellows.find(p => p.x === x && p.y === y);
+
+              const isStart = currentLevel.start.x === x && currentLevel.start.y === y;
+
+              const isGoal = currentLevel.goal.x === x && currentLevel.goal.y === y;
+
+              return { x, y, type: preset ? preset.type : (isYellow ? 'yellow' : 'empty'), isStart, isGoal, originalType: preset ? preset.type : (isYellow ? 'yellow' : 'empty') };
+
+            });
+
+            setGrid(newGrid);
+
+            setCar({ ...currentLevel.start });
+
+            carRef.current = { ...currentLevel.start }; 
+
+            setIsPlaying(false);
+
+            setGameStatus('idle');
+
+            setMessage('');
+
+            setVisitedYellows([]);
+
+            setPlacedCounts({ red: 0, blue: 0 });
+
+            setRemovedCount(0);
+
+            lastProcessedPos.current = { x: -1, y: -1 };
+
+            if (timerRef.current) clearInterval(timerRef.current);
+
+          };
+
+
+
+          const endGame = (status, msg) => {
+
+            clearInterval(timerRef.current);
+
+            setIsPlaying(false);
+
+            setGameStatus(status);
+
+            setMessage(msg);
+
+          };
+
+
+
+          const moveCar = () => {
+
+            const prevCar = carRef.current;
+
+            if (!prevCar) return;
+
+            const currentDir = DIRECTIONS[prevCar.dir];
+
+            const nextX = prevCar.x + currentDir.dx;
+
+            const nextY = prevCar.y + currentDir.dy;
+
+            if (nextX < 0 || nextX >= GRID_SIZE || nextY < 0 || nextY >= GRID_SIZE) { endGame('lost', "哎呀！車子撞到牆壁了！"); return; }
+
+            const nextCar = { ...prevCar, x: nextX, y: nextY };
+
+            setCar(nextCar);
+
+          };
+
+
+
+          const showAnswer = () => {
+
+            if (!currentLevel) return;
+
+            if (isPlaying) { 
+
+                clearInterval(timerRef.current); setIsPlaying(false); setGameStatus('idle'); setCar({ ...currentLevel.start }); carRef.current = { ...currentLevel.start };
+
+                lastProcessedPos.current = { x: -1, y: -1 }; setVisitedYellows([]); 
+
+            }
+
+            if (mode === 'must_pass') {
+
+              const newGrid = grid.map(cell => ({ ...cell, type: cell.originalType === 'yellow' ? 'yellow' : 'empty' }));
+
+              currentLevel.solution.forEach(sol => { const index = sol.y * GRID_SIZE + sol.x; newGrid[index].type = sol.type; });
+
+              setGrid(newGrid);
+
+              setPlacedCounts(currentLevel.inventory);
+
+              setMessage("已顯示參考答案");
+
+            } else if (mode === 'remove_card') {
+
+              const newGrid = grid.map(cell => ({ ...cell, type: cell.originalType }));
+
+              const sol = currentLevel.solution;
+
+              const index = sol.y * GRID_SIZE + sol.x;
+
+              newGrid[index].type = 'empty';
+
+              setGrid(newGrid);
+
+              setRemovedCount(1);
+
+              setMessage("已顯示參考答案");
+
+            }
+
+          };
+
+
+
+          const handleCellClick = (index) => {
+
+            if (isPlaying || gameStatus !== 'idle') return;
+
+            const cell = grid[index];
+
+            const newGrid = [...grid];
+
+            if (cell.isStart || cell.isGoal) return;
+
+
+
+            if (mode === 'must_pass') {
+
+              if (cell.type === 'yellow') { setMessage("檢查點不能覆蓋！"); return; }
+
+              if (cell.type !== 'empty') {
+
+                const typeToRemove = cell.type;
+
+                newGrid[index].type = 'empty';
+
+                setPlacedCounts(prev => ({ ...prev, [typeToRemove]: prev[typeToRemove] - 1 }));
+
+              } else {
+
+                if (placedCounts[selectedTool] < currentLevel.inventory[selectedTool]) {
+
+                  newGrid[index].type = selectedTool;
+
+                  setPlacedCounts(prev => ({ ...prev, [selectedTool]: prev[selectedTool] + 1 }));
+
+                } else { setMessage(`您的卡片用完了！`); }
+
+              }
+
+            } else if (mode === 'remove_card') {
+
+              if (cell.originalType === 'red' || cell.originalType === 'blue') {
+
+                if (cell.type === 'empty') {
+
+                  newGrid[index].type = cell.originalType;
+
+                  setRemovedCount(prev => prev - 1);
+
+                } else {
+
+                  if (removedCount < currentLevel.maxRemovals) {
+
+                    newGrid[index].type = 'empty';
+
+                    setRemovedCount(prev => prev + 1);
+
+                  } else { setMessage("只能移除一張！"); }
+
+                }
+
+              }
+
+            }
+
+            setGrid(newGrid);
+
+          };
+
+
+
+          const startGame = () => {
+
+            if (mode === 'must_pass') {
+
+              if (placedCounts.red !== currentLevel.inventory.red || placedCounts.blue !== currentLevel.inventory.blue) { setMessage("請先放完所有卡片！"); return; }
+
+            }
+
+            if (mode === 'remove_card') { if (removedCount !== 1) { setMessage("請移除一張卡片！"); return; } }
+
+            lastProcessedPos.current = { x: -1, y: -1 };
+
+            setIsPlaying(true); setGameStatus('running'); setMessage('車子出發了！');
+
+            timerRef.current = setInterval(moveCar, SPEED_MS);
+
+          };
+
+
+
+          useEffect(() => {
+
+            if (!isPlaying || !car || !currentLevel) return;
+
+            if (car.x === lastProcessedPos.current.x && car.y === lastProcessedPos.current.y) return;
+
+            lastProcessedPos.current = { x: car.x, y: car.y };
+
+            const currentCell = grid.find(c => c.x === car.x && c.y === car.y);
+
+            if (!currentCell) return;
+
+            if (currentCell.isGoal) {
+
+              const win = currentLevel.winCondition(visitedRef.current.length, currentLevel.yellows.length);
+
+              if (win) endGame('won', "恭喜！成功抵達終點！");
+
+              else endGame('lost', `失敗：只過了 ${visitedRef.current.length} 個檢查點！`);
+
+              return;
+
+            }
+
+            if (currentCell.type === 'yellow') {
+
+                const id = `${car.x},${car.y}`;
+
+                if (!visitedRef.current.includes(id)) setVisitedYellows(prev => [...prev, id]);
+
+            }
+
+            if (currentCell.type === 'red') setCar(prev => ({ ...prev, dir: (prev.dir + 1) % 4 }));
+
+            else if (currentCell.type === 'blue') setCar(prev => ({ ...prev, dir: (prev.dir + 3) % 4 }));
+
+          }, [car, isPlaying, grid, currentLevel]);
+
+
+
+          const getCarStyle = (dirIndex) => {
+
+            const transition = 'transform 0.3s ease-in-out';
+
+            if (dirIndex === 3) return { transform: 'scaleX(-1)', transition };
+
+            if (dirIndex === 1) return { transform: 'rotate(0deg)', transition };
+
+            const deg = (dirIndex - 1) * 90;
+
+            return { transform: `rotate(${deg}deg)`, transition };
+
+          };
+
+          const getStartArrowRotation = () => currentLevel ? (currentLevel.start.dir - 1) * 90 : 0;
+
+
+
+          if (!currentLevel) return <div className="min-h-screen flex items-center justify-center">載入中...</div>;
+
+
+
+          return (
+
+            <div className="min-h-screen bg-slate-100 p-2 font-sans text-slate-800 flex flex-col items-center justify-start">
+
+              <div className="max-w-xs w-full mb-2 text-center">
+
+                <h1 className="text-xl font-bold text-slate-800 mb-1 flex items-center justify-center gap-2">
+
+                  <Trophy className="w-5 h-5 text-amber-500" /> 五乘五賽車挑戰
+
+                </h1>
+
+                <div className="mb-2 bg-white p-2 rounded-lg shadow-sm border border-slate-200">
+
+                   <div className="flex flex-col gap-1 text-[10px] text-slate-600 font-medium">
+
+                     <div className="flex justify-center gap-4">
+
+                        <div className="flex items-center gap-1"><div className="w-3 h-3 border-2 border-slate-900 rounded flex items-center justify-center"><ArrowRight className="w-2 h-2" /></div> 起點</div>
+
+                        <div className="flex items-center gap-1"><div className="w-3 h-3 border-2 border-green-500 rounded"></div> 終點</div>
+
+                     </div>
+
+                     <div className="flex justify-center gap-3">
+
+                        <div className="flex items-center gap-1"><div className="w-3 h-3 bg-red-400 rounded"></div> 右轉</div>
+
+                        <div className="flex items-center gap-1"><div className="w-3 h-3 bg-blue-400 rounded"></div> 左轉</div>
+
+                        <div className="flex items-center gap-1"><div className="w-3 h-3 bg-amber-300 rounded"></div> 檢查點</div>
+
+                     </div>
+
+                   </div>
+
+                </div>
+
+                <div className="flex bg-white rounded-lg p-0.5 shadow-sm mb-2">
+
+                  <button onClick={() => setMode('must_pass')} className={`flex-1 py-1.5 px-2 rounded-md text-xs font-medium transition-colors ${mode === 'must_pass' ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:bg-slate-50'}`}>必經之路</button>
+
+                  <button onClick={() => setMode('remove_card')} className={`flex-1 py-1.5 px-2 rounded-md text-xs font-medium transition-colors ${mode === 'remove_card' ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:bg-slate-50'}`}>移除卡片</button>
+
+                </div>
+
+                <div className="bg-white p-2 rounded-lg shadow-sm border border-slate-200 min-h-[40px] flex flex-col justify-center relative overflow-hidden">
+
+                  <div className="absolute top-0 right-0 p-0.5"><div className="bg-slate-100 text-slate-400 text-[8px] px-1 rounded">ID: {currentLevel.id.slice(-4)}</div></div>
+
+                  <p className="text-xs text-slate-700 font-medium leading-tight px-1">{currentLevel.description}</p>
+
+                </div>
+
+              </div>
+
+              <div className="relative bg-white p-3 rounded-xl shadow-lg border border-slate-200 w-full max-w-xs">
+
+                <div className={`h-6 mb-1 text-center font-bold text-xs flex items-center justify-center rounded transition-colors ${gameStatus === 'won' ? 'text-green-600 bg-green-50' : gameStatus === 'lost' ? 'text-red-600 bg-red-50' : 'text-indigo-600'}`}>
+
+                  {message || (mode === 'must_pass' ? `放置: ${currentLevel.inventory.red}紅 ${currentLevel.inventory.blue}藍` : "請移除 1 張卡片...")}
+
+                </div>
+
+                <div className="grid gap-1 bg-slate-300 p-1 rounded mb-2 mx-auto" style={{ gridTemplateColumns: `repeat(${GRID_SIZE}, minmax(0, 1fr))`, width: '100%', maxWidth: '280px', aspectRatio: '1/1' }}>
+
+                  {grid.map((cell, idx) => (
+
+                    <div key={`${cell.x}-${cell.y}`} onClick={() => handleCellClick(idx)} className={`relative rounded flex items-center justify-center cursor-pointer transition-all duration-200 aspect-square ${cell.type === 'red' ? 'bg-red-400' : cell.type === 'blue' ? 'bg-blue-400' : cell.type === 'yellow' ? 'bg-amber-300' : 'bg-white'} ${cell.isStart ? 'ring-2 ring-inset ring-slate-900' : ''} ${cell.isGoal ? 'ring-2 ring-inset ring-green-500' : ''}`}>
+
+                      {cell.type === 'yellow' && <div className={`w-2.5 h-2.5 rounded-full ${visitedYellows.includes(`${cell.x},${cell.y}`) ? 'bg-green-600' : 'bg-amber-600'}`} />}
+
+                      {cell.isStart && <ArrowRight className="text-slate-900 w-1/2 h-1/2 absolute opacity-40" style={{ transform: `rotate(${getStartArrowRotation()}deg)` }} />}
+
+                      {cell.isGoal && <Flag className="text-green-600 w-2/3 h-2/3 absolute bottom-1 right-1 opacity-80" />}
+
+                      {car && car.x === cell.x && car.y === cell.y && (<div className="absolute inset-0 z-10 flex items-center justify-center" style={getCarStyle(car.dir)}><CarSideIcon className="w-4/5 h-4/5 text-indigo-700 fill-current drop-shadow-md" /></div>)}
+
+                    </div>
+
+                  ))}
+
+                </div>
+
+                <div className="flex flex-col gap-2">
+
+                  <div className="min-h-[50px] flex flex-col justify-center">
+
+                    {mode === 'must_pass' && (
+
+                      <div className="flex justify-center gap-4">
+
+                        <button onClick={() => setSelectedTool('red')} className={`flex items-center gap-2 px-3 py-1 rounded border transition-all ${selectedTool === 'red' ? 'border-red-500 bg-red-50' : 'border-slate-200'}`}><div className="bg-red-400 w-3 h-3 rounded"></div><span className="text-xs font-bold text-slate-600">x {currentLevel.inventory.red - placedCounts.red}</span></button>
+
+                        <button onClick={() => setSelectedTool('blue')} className={`flex items-center gap-2 px-3 py-1 rounded border transition-all ${selectedTool === 'blue' ? 'border-blue-500 bg-blue-50' : 'border-slate-200'}`}><div className="bg-blue-400 w-3 h-3 rounded"></div><span className="text-xs font-bold text-slate-600">x {currentLevel.inventory.blue - placedCounts.blue}</span></button>
+
+                      </div>
+
+                    )}
+
+                    {mode === 'remove_card' && (<div className="flex justify-center items-center h-full"><div className="text-center text-xs text-slate-500 bg-slate-50 px-3 py-1 rounded border border-slate-200">已移除: <span className="font-bold text-indigo-600">{removedCount}</span> / 1</div></div>)}
+
+                  </div>
+
+                  <div className="flex flex-col gap-2 border-t pt-2">
+
+                    <button onClick={startGame} disabled={isPlaying || gameStatus === 'won'} className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white py-2 px-4 rounded-lg flex items-center justify-center gap-2 font-bold shadow-sm text-sm"><Play className="w-4 h-4" /> 出發</button>
+
+                    <div className="flex gap-2">
+
+                        <button onClick={resetGridState} className="flex-1 bg-white border border-slate-300 text-slate-700 py-2 px-2 rounded-lg flex items-center justify-center gap-1 font-bold text-xs"><RotateCcw className="w-3 h-3" /> 重置</button>
+
+                        <button onClick={showAnswer} className="flex-1 bg-white border border-slate-300 text-slate-700 py-2 px-2 rounded-lg flex items-center justify-center gap-1 font-bold text-xs"><Lightbulb className="w-3 h-3" /> 看答案</button>
+
+                    </div>
+
+                    <button onClick={generateNewLevel} className="w-full bg-amber-100 text-amber-800 py-2 px-3 rounded-lg flex items-center justify-center gap-2 font-bold shadow-sm mt-1 text-xs"><RefreshCw className="w-3 h-3" /> 下一題 (隨機)</button>
+
+                  </div>
+
+                </div>
+
+              </div>
+
+            </div>
+
+          );
+
+        }
+
+
+
+        const root = createRoot(document.getElementById('root'));
+
+        root.render(<CarLogicGame />);
+
+    </script>
+
 </body>
+
 </html>
