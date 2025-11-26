@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5x5 路徑規劃謎題 (移除卡片版/連續移動/V5)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f9fc;
+        }
+        .grid-wrapper {
+            position: relative;
+            width: fit-content;
+            margin: 0 auto; 
+            box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+        }
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 2px;
+            background-color: #4a5568; 
+            border: 4px solid #4a5568;
+            border-radius: 12px;
+            width: fit-content;
+        }
+        .cell {
+            width: 70px;
+            height: 70px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: #1f2937;
+            background-color: #e5e7eb;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            position: relative;
+            user-select: none;
+            cursor: default; 
+            overflow: hidden; 
+        }
+        .start { background-color: #d1d5db; color: #1f2937; } 
+        .end-green { 
+            background-color: #10b981; 
+            color: white; 
+        } 
+        
+        .card-R { background-color: #f87171; color: white; } 
+        .card-B { background-color: #60a5fa; color: white; } 
+
+        /* 移除卡片後的樣式 */
+        .removed { 
+            background-color: #fef3c7; /* 淺黃色表示已移除 */
+            color: #b45309; 
+            border: 3px dashed #fbbf24;
+            opacity: 0.8;
+        }
+
+        /* 選擇移除的卡片樣式 */
+        .selected-to-remove {
+            outline: 6px solid #ef4444; 
+            outline-offset: -6px;
+            box-shadow: 0 0 10px #ef4444;
+            transform: scale(0.95);
+        }
+        
+        /* 路徑線條和箭頭 */
+        .arrow-start {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 30px;
+            height: 30px;
+            color: #1f2937; 
+            transition: transform 0.3s ease;
+            z-index: 15;
+            filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.5)); 
+        }
+        .path-line {
+            stroke: #3b82f6; /* 使用藍色線條 */
+            stroke-width: 8;
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        #path-svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            pointer-events: none; 
+        }
+        .path-step-text {
+            position: absolute;
+            top: 2px;
+            right: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #3b82f6;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 0 4px;
+            border-radius: 4px;
+            z-index: 30; 
+        }
+        .path-dot {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background-color: #3b82f6; 
+            border-radius: 50%;
+            z-index: 20; 
+            transform: translate(-50%, -50%);
+            top: 50%;
+            left: 50%;
+            transition: all 0.3s ease;
+        }
+
+    </style>
+</head>
+<body class="p-4 sm:p-8 flex flex-col items-center min-h-screen">
+
+    <div class="max-w-6xl w-full">
+        <h1 class="text-3xl font-bold text-gray-800 mb-2 text-center">5x5 自走車路徑謎題 (移除卡片版 - V5 超高難度)</h1>
+        <p class="text-md text-gray-600 mb-6 text-center">
+            目標：在 3 紅 3 藍共 6 張卡片中，**移除其中 1 張**，使自走車從 S 成功移動到 E。
+            <span class="font-bold text-red-500">此謎題經演算法驗證，僅移除特定一張卡片才能成功，且該卡片位於第 5 或第 6 個嘗試位置，難度極高。</span>
+        </p>
+
+        <!-- 主要控制面板 (頂部按鈕) -->
+        <div class="bg-white p-6 rounded-xl shadow-lg mb-8">
+            <div class="flex flex-col md:flex-row md:space-x-4 space-y-4 md:space-y-0 items-end">
+                <button onclick="generatePuzzle()" id="generate-btn" class="w-full md:w-auto py-3 px-6 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-md transition duration-200">
+                    生成新的謎題 (S, E, 3R, 3B)
+                </button>
+                <button onclick="checkPathOrRevealSolution()" id="check-reveal-btn" class="w-full md:w-auto py-3 px-6 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow-md transition duration-200" disabled>
+                    ✓ 檢查路徑 / 顯示答案
+                </button>
+            </div>
+            
+            <!-- 進度條容器 -->
+            <div id="progress-container" class="mt-4 hidden">
+                <p class="text-sm font-medium text-gray-700 mb-1">尋找滿足所有約束的謎題 (最多 50,000 次嘗試)...</p>
+                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                    <div id="progress-bar" class="bg-blue-600 h-2.5 rounded-full transition-all duration-300 ease-in-out" style="width: 0%"></div>
+                </div>
+                <p id="progress-text" class="text-xs text-gray-500 mt-1">嘗試次數: 0 (進度 0%)</p>
+            </div>
+        </div>
+        
+        <!-- 網格與結果/放置區穩定佈局 -->
+        <div class="flex flex-col lg:flex-row w-full lg:space-x-8">
+            
+            <!-- 操作區 (左側) -->
+            <div id="placement-controls" class="bg-white p-6 rounded-xl shadow-lg mb-8 lg:mb-0 lg:w-1/3 min-h-[300px]">
+                <h3 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">操作：選擇移除的卡片</h3>
+                
+                <p class="text-lg font-semibold text-gray-700 mb-4">
+                    **謎題條件：** <br> 
+                    起始方向：<span class="text-indigo-600 font-bold" id="dir-name">N/A</span>
+                </p>
+
+                <p class="text-gray-700 mb-4">
+                    **點擊網格中的 R 或 B 卡片，選擇您要移除的 1 張。**
+                </p>
+                
+                <p id="removed-card-status" class="text-sm mt-4 text-red-500 font-medium"></p>
+                
+                <div class="mt-4 p-3 bg-yellow-50 border-l-4 border-yellow-400 rounded-lg">
+                    <p class="text-sm font-semibold text-yellow-800">當前已選擇移除：</p>
+                    <p id="removed-card-display" class="font-bold text-lg text-yellow-700">無</p>
+                </div>
+                
+                <button onclick="clearRemovalSelection()" class="w-full mt-4 py-2 px-4 text-sm bg-gray-200 hover:bg-gray-300 rounded-lg transition duration-200">
+                    取消移除選擇
+                </button>
+            </div>
+
+            <!-- 網格顯示 (中間) -->
+            <div class="flex-none flex justify-center mb-8 lg:mb-0">
+                <div id="grid-wrapper" class="grid-wrapper">
+                    <div id="grid-display" class="grid-container">
+                        <!-- Grid cells will be inserted here by JavaScript -->
+                    </div>
+                    <!-- 新增 SVG 元素用於繪製線條 -->
+                    <svg id="path-svg"></svg>
+                </div>
+            </div>
+            
+            <!-- 結果區塊 (右側) -->
+            <div class="flex-grow">
+                <div id="result-info" class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-indigo-500 min-h-[300px]">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">路徑模擬結果</h3>
+                    
+                    <p id="status-message" class="text-gray-600 mb-4 font-semibold">點擊上方按鈕生成謎題。</p>
+                    
+                    <!-- 答案區塊，預設隱藏 -->
+                    <div id="solution-details" class="space-y-3 hidden">
+                        <p class="text-sm text-gray-500 mb-2">--- 路線總結 ---</p>
+                        
+                        <div id="card-locations" class="mt-4 pt-4 border-t border-gray-200">
+                            <span class="font-medium text-gray-700 mr-2">卡片配置: 3R / 3B</span>
+                        </div>
+
+                        <div id="path-summary" class="mt-4 pt-4 border-t border-gray-200 text-sm text-gray-600">
+                            <!-- Path info (Steps, status) -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- 核心配置 ---
+        const GRID_SIZE = 5;
+        const CARD_DECK = ['R', 'R', 'R', 'B', 'B', 'B']; // 3 紅, 3 藍
+        const TOTAL_CARDS = CARD_DECK.length;
+        const DIRECTIONS = ['上', '右', '下', '左']; // 0, 1, 2, 3 (順時針)
+        const DIR_VECTORS = [
+            [-1, 0], // Up (row change, col change)
+            [0, 1],  // Right
+            [1, 0],  // Down
+            [0, -1]  // Left
+        ];
+        const MAX_STEPS = 100; // 防止無限迴圈
+        const MAX_SEARCH_ATTEMPTS = 50000; // 尋找滿足約束的解的次數
+        
+        // 取得單元格的尺寸 (CSS 設定的)
+        const CELL_WIDTH = 70; 
+        const GAP_WIDTH = 2;
+        const BORDER_WIDTH = 4;
+        const CELL_SIZE_TOTAL = CELL_WIDTH + GAP_WIDTH; // 72px
+
+        const CELL_TYPE = {
+            EMPTY: 'E',
+            START: 'S',
+            END: 'D', // Destination
+            CARD_R: 'R',
+            CARD_B: 'B'
+        };
+
+        // --- 全域狀態 ---
+        let startPos, endPos;
+        let initialCardMap = new Map(); // 儲存 3R 3B 的初始配置
+        let currentSolution = null; // 儲存 {initialCardMap, startPos, endPos, tileRemovedKey, initialDir, path}
+        let tileRemovedKey = null; // 儲存使用者選擇移除的卡片 Key ('r,c')
+
+
+        // --- 輔助函數 ---
+
+        /** 取得不重複的隨機座標 [r, c] */
+        function getRandomPosition(usedPositions) {
+            let pos;
+            let key;
+            do {
+                pos = [Math.floor(Math.random() * GRID_SIZE), Math.floor(Math.random() * GRID_SIZE)];
+                key = pos.join(',');
+            } while (usedPositions.has(key));
+            usedPositions.add(key);
+            return pos;
+        }
+
+        /** 初始化 S 和 E 的位置 */
+        function initializeGridBase() {
+            const usedPositions = new Set();
+            
+            // 嘗試確保 S 和 E 不在同一行或同一列，增加複雜度
+            do {
+                startPos = getRandomPosition(new Set());
+                endPos = getRandomPosition(new Set([startPos.join(',')]));
+            } while (startPos[0] === endPos[0] || startPos[1] === endPos[1]);
+
+            // 將 S 和 E 加入已使用位置
+            usedPositions.add(startPos.join(','));
+            usedPositions.add(endPos.join(','));
+        }
+
+        /** 產生一個包含 3R 3B 的隨機卡片配置 */
+        function getRandomCardConfiguration() {
+            const usedPositions = new Set([startPos.join(','), endPos.join(',')]);
+            const cardAssignments = new Map();
+            let cards = [...CARD_DECK];
+
+            for (let i = 0; i < TOTAL_CARDS; i++) {
+                const pos = getRandomPosition(usedPositions);
+                const key = pos.join(',');
+                
+                const cardIndex = Math.floor(Math.random() * cards.length);
+                const card = cards[cardIndex];
+                cards.splice(cardIndex, 1);
+                
+                cardAssignments.set(key, card === 'R' ? CELL_TYPE.CARD_R : CELL_TYPE.CARD_B);
+            }
+
+            return cardAssignments;
+        }
+        
+        /** 根據當前卡片配置和移除選擇，生成完整的網格 */
+        function buildGrid(cardMap, removedKey) {
+            const grid = Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(CELL_TYPE.EMPTY));
+            
+            // 放置 Cards (排除被移除的)
+            for (const [key, type] of cardMap.entries()) {
+                if (key !== removedKey) {
+                    const [r, c] = key.split(',').map(Number);
+                    grid[r][c] = type;
+                }
+            }
+
+            // 放置 S 和 E
+            grid[startPos[0]][startPos[1]] = CELL_TYPE.START;
+            grid[endPos[0]][endPos[1]] = CELL_TYPE.END;
+            
+            return grid;
+        }
+        
+        // --- 約束檢查輔助函數 (Constraint Check Helpers) ---
+
+        /**
+         * 檢查 p_check 是否位於 p1 到 p2 的直線路徑上 (不包含端點 p1 和 p2)
+         * @param {number[]} p1 - 點 1 [r, c]
+         * @param {number[]} p2 - 點 2 [r, c]
+         * @param {string} keyCheck - 檢查點的 Key 'r,c'
+         * @returns {boolean}
+         */
+        function isCellOnSegment(p1, p2, keyCheck) {
+            const [r1, c1] = p1;
+            const [r2, c2] = p2;
+            const [r_k, c_k] = keyCheck.split(',').map(Number);
+            
+            // 檢查是否在同一行 (水平移動)
+            if (r1 === r2) {
+                if (r_k !== r1) return false;
+                // c_k 必須嚴格位於 c1 和 c2 之間 (不包含端點)
+                const minC = Math.min(c1, c2);
+                const maxC = Math.max(c1, c2);
+                return c_k > minC && c_k < maxC;
+            }
+            
+            // 檢查是否在同一列 (垂直移動)
+            if (c1 === c2) {
+                if (c_k !== c1) return false;
+                // r_k 必須嚴格位於 r1 和 r2 之間 (不包含端點)
+                const minR = Math.min(r1, r2);
+                const maxR = Math.max(r1, r2);
+                return r_k > minR && r_k < maxR;
+            }
+            
+            // 非直線移動 (不應發生)
+            return false;
+        }
+
+        /**
+         * 檢查成功路徑是否經過了被移除卡片的位置 (約束 1)
+         * @param {Array<number[]>} path - 成功的轉折點路徑 (S, T1, ..., E)
+         * @param {string} keyRemoved - 被移除卡片的 Key 'r,c'
+         * @returns {boolean}
+         */
+        function isRemovedCardUsed(path, keyRemoved) {
+            if (!keyRemoved) return false;
+
+            if (path.length < 2) return false;
+
+            for (let i = 0; i < path.length - 1; i++) {
+                const p1 = path[i]; 
+                const p2 = path[i+1];
+                
+                // 檢查 keyRemoved 是否在 p1 和 p2 之間的直線上
+                if (isCellOnSegment(p1, p2, keyRemoved)) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /**
+         * 模擬自走車的連續直線移動路徑
+         * @param {number[]} start - 起始座標 [r, c]
+         * @param {number} initialDir - 起始方向 (0-3)
+         * @param {Map} cardMap - 包含卡片的配置 (5張)
+         * @param {number[]} endPos - 終點座標 [r, c]
+         * @returns {object} 路徑結果
+         */
+        function simulateContinuousPath(start, initialDir, cardMap, endPos) {
+            // 注意: 在此處傳入的 cardMap 已經排除了被移除的卡片 (如果有的話)
+            const currentGrid = buildGrid(cardMap, null); 
+            let [r, c] = [...start];
+            let currentDir = initialDir;
+            // path: [[r, c], [r, c], ...] - 儲存所有轉折點 (包括 S, E 和卡片位置)
+            const path = [[r, c]]; 
+            const endKey = endPos.join(',');
+
+            for (let step = 0; step < MAX_STEPS; step++) {
+                let [dr, dc] = DIR_VECTORS[currentDir];
+                let nr = r + dr;
+                let nc = c + dc;
+                let nextHitCell = null; // [r, c, type] - 紀錄卡片或終點 E 的位置
+
+                // 沿著 currentDir 找到下一個 R/B 或 E
+                while (true) {
+                    const nextKey = `${nr},${nc}`;
+                    
+                    // 檢查邊界
+                    if (nr < 0 || nr >= GRID_SIZE || nc < 0 || nc >= GRID_SIZE) {
+                        // 撞到邊界，路徑終止，失敗
+                        return { path, isSuccess: false, endedAtEnd: false }; 
+                    }
+                    
+                    const nextType = currentGrid[nr][nc];
+                    
+                    if (nextKey === endKey) {
+                        // 抵達終點 E
+                        nextHitCell = [nr, nc, CELL_TYPE.END];
+                        break; 
+                    }
+                    
+                    if (nextType === CELL_TYPE.CARD_R || nextType === CELL_TYPE.CARD_B) {
+                        // 撞到卡片
+                        nextHitCell = [nr, nc, nextType];
+                        break;
+                    }
+                    
+                    // 繼續向前直走
+                    nr += dr;
+                    nc += dc;
+                }
+
+                // 處理轉向或終止
+                r = nextHitCell[0];
+                c = nextHitCell[1];
+                const hitType = nextHitCell[2];
+                
+                // 1. 成功抵達終點 E
+                if (hitType === CELL_TYPE.END) {
+                    path.push([r, c]); 
+                    return { path, isSuccess: true, endedAtEnd: true };
+                }
+                
+                // 2. 撞到卡片 (轉彎)
+                if (hitType === CELL_TYPE.CARD_R) {
+                    currentDir = (currentDir + 1) % 4; // 紅卡: 右轉 (R)
+                } else if (hitType === CELL_TYPE.CARD_B) {
+                    currentDir = (currentDir + 3) % 4; // 藍卡: 左轉 (L)
+                } 
+                
+                // 紀錄新的轉折點 (卡片位置)
+                path.push([r, c]);
+
+            }
+            
+            // 超出最大步數 (無限迴圈)
+            return { path, isSuccess: false, endedAtEnd: false };
+        }
+
+        /** 尋找滿足移除一卡後有解的謎題 (包含難度要求) */
+        async function findSolution() {
+            let attempts = 0;
+            while (attempts < MAX_SEARCH_ATTEMPTS) {
+                
+                // 1. 初始化 S, E
+                initializeGridBase();
+                
+                // 2. 初始化 3R 3B 配置
+                const initialMap = getRandomCardConfiguration();
+                const allKeys = Array.from(initialMap.keys());
+                
+                // 3. 嘗試所有 4 個起始方向
+                for (let initialDir = 0; initialDir < 4; initialDir++) {
+                    
+                    // --- 約束 3 (初始移動檢查 - 排除簡單 S->E 和 S->牆壁) ---
+                    const fullMap = new Map(initialMap); 
+                    const resultInitial = simulateContinuousPath(startPos, initialDir, fullMap, endPos);
+                    
+                    // a) 排除 S->E 成功路徑 (太簡單)
+                    if (resultInitial.isSuccess) {
+                        continue; 
+                    }
+
+                    // b) 排除 S->牆壁 失敗路徑 (太簡單)
+                    // path.length <= 1 意味著 S 的下一個單元格是牆壁
+                    if (resultInitial.path.length <= 1) {
+                        continue; 
+                    }
+                    
+                    // 複製並隨機排列卡片鍵，模擬玩家嘗試的順序
+                    const shuffledKeys = [...allKeys].sort(() => Math.random() - 0.5);
+                    
+                    let successfulSolution = null;
+                    let successIndex = -1; // 記錄成功解法在 shuffledKeys 中的索引
+                    let totalValidSolutions = 0;
+
+                    // 檢查所有 6 種移除方案
+                    for (let i = 0; i < shuffledKeys.length; i++) {
+                        const keyToRemove = shuffledKeys[i];
+                        
+                        // --- 約束 4 (卡片連動性檢查) ---
+                        // 要求被移除卡片的十字線上，至少還有一張其他卡片
+                        const [r_removed, c_removed] = keyToRemove.split(',').map(Number);
+                        let hasRowCard = false; 
+                        let hasColCard = false; 
+
+                        for (const key of allKeys) {
+                            if (key === keyToRemove) continue; 
+                            const [r, c] = key.split(',').map(Number);
+                            if (r === r_removed) { hasRowCard = true; }
+                            if (c === c_removed) { hasColCard = true; }
+                        }
+                        
+                        // 必須有至少一個連動卡片，否則該解法太簡單，不考慮為有效解
+                        if (!hasRowCard && !hasColCard) {
+                             continue;
+                        }
+                        
+                        // --- 模擬移除卡片後的路徑 ---
+                        const mapToSimulate = new Map(initialMap);
+                        mapToSimulate.delete(keyToRemove);
+                        const result = simulateContinuousPath(startPos, initialDir, mapToSimulate, endPos);
+                        
+                        if (result.isSuccess) {
+                            // --- 約束 1 & 2 (成功路徑檢查) ---
+                            
+                            // 約束 2: 成功路徑必須包含轉彎點 (S, T1, E) -> path.length > 2
+                            if (result.path.length <= 2) {
+                                continue; 
+                            }
+
+                            // 約束 1: 被移除的卡片位置必須位於新的成功路徑上
+                            if (!isRemovedCardUsed(result.path, keyToRemove)) {
+                                 continue;
+                            }
+                            
+                            // 如果找到一個通過所有約束的解
+                            totalValidSolutions++;
+                            
+                            // 記錄第一個找到的有效解
+                            if (successfulSolution === null) {
+                                successfulSolution = {
+                                    initialGrid: initialMap,
+                                    startPos: startPos,
+                                    endPos: endPos,
+                                    tileRemovedKey: keyToRemove, // 這是答案
+                                    initialDir: initialDir, 
+                                    path: result.path
+                                };
+                                successIndex = i; // 記錄它是第幾個被檢查到的成功解 (0-5)
+                            }
+                        }
+                    }
+
+                    // --- 難度檢查 (要求答案在第 5 或 6 個位置) ---
+                    // 1. 必須只有唯一解 (totalValidSolutions === 1)
+                    // 2. 該解在隨機順序中必須是第 5 或 6 個 (successIndex >= 4)
+                    if (totalValidSolutions === 1 && successIndex >= 4) {
+                        return successfulSolution;
+                    }
+                }
+                
+                attempts++;
+
+                // 更新進度條 UI
+                if (attempts % 50 === 0) {
+                    const progress = Math.min(100, (attempts / MAX_SEARCH_ATTEMPTS) * 100);
+                    document.getElementById('progress-bar').style.width = `${progress}%`;
+                    document.getElementById('progress-text').textContent = `嘗試次數: ${attempts} (進度 ${Math.floor(progress)}%)`;
+                    if (attempts % 1000 === 0) {
+                        await new Promise(resolve => setTimeout(resolve, 50)); 
+                    }
+                }
+            }
+            return null; 
+        }
+
+        // --- UI 繪製與更新 ---
+
+        /** 取得箭頭 SVG 圖像 (修正旋轉邏輯) */
+        function getArrowSVG(direction, isStart = false) {
+            const rotations = [0, 90, 180, 270]; 
+            const colorClass = isStart ? 'arrow-start' : 'arrow-path';
+
+            return `
+                <svg class="${colorClass}" style="transform: translate(-50%, -50%) rotate(${rotations[direction]}deg);" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 4l-8 8h5v8h6v-8h5l-8-8z" />
+                </svg>
+            `;
+        }
+
+        /** 繪製 SVG 路徑線條 (僅連接路徑上的點) */
+        function drawPathLine(path) {
+            const svg = document.getElementById('path-svg');
+            svg.innerHTML = ''; 
+            
+            if (path.length < 2) return;
+
+            // 調整 SVG 尺寸以包含整個網格 (包含 4px 邊框)
+            const totalSize = (CELL_WIDTH + GAP_WIDTH) * GRID_SIZE + BORDER_WIDTH * 2;
+            svg.setAttribute('width', totalSize);
+            svg.setAttribute('height', totalSize);
+            
+            // 座標調整: 找到格子的中心點
+            let dPath = path.map(([r, c]) => {
+                const x = BORDER_WIDTH + c * CELL_SIZE_TOTAL + CELL_WIDTH / 2;
+                const y = BORDER_WIDTH + r * CELL_SIZE_TOTAL + CELL_WIDTH / 2;
+                return `${x},${y}`;
+            }).join(' L '); 
+
+            dPath = `M ${dPath}`; 
+
+            const pathElement = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            pathElement.setAttribute('d', dPath);
+            pathElement.setAttribute('class', 'path-line');
+
+            svg.appendChild(pathElement);
+            
+            // 繪製路徑點
+            const pathMap = new Map();
+            path.forEach(([r, c], index) => pathMap.set(`${r},${c}`, index));
+            
+            // 在網格上顯示點和步數
+            for (let r = 0; r < GRID_SIZE; r++) {
+                for (let c = 0; c < GRID_SIZE; c++) {
+                    const cell = document.querySelector(`[data-r="${r}"][data-c="${c}"]`);
+                    if (!cell) continue;
+
+                    // 清除舊的點
+                    cell.querySelectorAll('.path-dot, .path-step-text').forEach(el => el.remove());
+                    
+                    const key = `${r},${c}`;
+                    const index = pathMap.get(key);
+
+                    if (index !== undefined) {
+                         const pathDot = document.createElement('div');
+                         pathDot.className = 'path-dot';
+                         cell.appendChild(pathDot);
+                        
+                         const stepText = document.createElement('span');
+                         stepText.className = 'path-step-text';
+                         if (index === 0) {
+                            stepText.textContent = 'S';
+                         } else if (key === endPos.join(',')) {
+                            stepText.textContent = 'E';
+                         } else {
+                            stepText.textContent = `步 ${index}`;
+                         }
+                         cell.appendChild(stepText);
+                    }
+                }
+            }
+        }
+
+        /** 處理卡片點擊事件 (選擇要移除的卡片) */
+        function handleCellClick(event) {
+            if (!currentSolution) return;
+            
+            const r = parseInt(event.currentTarget.dataset.r);
+            const c = parseInt(event.currentTarget.dataset.c);
+            const key = `${r},${c}`;
+            
+            const cellType = initialCardMap.get(key);
+
+            if (cellType !== CELL_TYPE.CARD_R && cellType !== CELL_TYPE.CARD_B) {
+                document.getElementById('removed-card-status').textContent = '只能移除 R 或 B 卡片。';
+                return;
+            }
+            
+            document.getElementById('removed-card-status').textContent = '';
+
+            if (key === tileRemovedKey) {
+                // 如果點擊已經選擇移除的卡片，則取消移除
+                clearRemovalSelection();
+            } else {
+                // 選擇新的移除卡片
+                tileRemovedKey = key;
+                document.getElementById('removed-card-display').textContent = 
+                    `${cellType === CELL_TYPE.CARD_R ? '紅卡 (R)' : '藍卡 (B)'} @ [${r}, ${c}]`;
+                
+                // 重新繪製網格以顯示選擇狀態
+                drawGrid(currentSolution.initialGrid, tileRemovedKey, null, false);
+                
+                // 啟用檢查按鈕
+                document.getElementById('check-reveal-btn').disabled = false;
+                document.getElementById('check-reveal-btn').textContent = '✓ 檢查我移除卡片後的路徑';
+                document.getElementById('solution-details').classList.add('hidden'); // 隱藏舊結果
+            }
+        }
+
+        /** 清空移除的選擇 */
+        function clearRemovalSelection() {
+            tileRemovedKey = null;
+            document.getElementById('removed-card-display').textContent = '無';
+            if (currentSolution) {
+                 drawGrid(currentSolution.initialGrid, null, null, false);
+                 document.getElementById('check-reveal-btn').textContent = '顯示自動生成的答案';
+                 document.getElementById('check-reveal-btn').disabled = false;
+            }
+            document.getElementById('path-svg').innerHTML = ''; 
+            document.getElementById('solution-details').classList.add('hidden');
+        }
+
+        /** 繪製網格 */
+        function drawGrid(cardMap, removedKey, solution, isRevealed = false) {
+            const display = document.getElementById('grid-display');
+            display.innerHTML = '';
+            
+            const fullGrid = buildGrid(cardMap, removedKey); // 包含 S, E, 5 張卡片
+            
+            // 繪製 SVG 線條 (如果是解法或檢查路徑)
+            if (solution) {
+                drawPathLine(solution.path);
+            } else {
+                document.getElementById('path-svg').innerHTML = '';
+            }
+
+            for (let r = 0; r < GRID_SIZE; r++) {
+                for (let c = 0; c < GRID_SIZE; c++) {
+                    const cell = document.createElement('div');
+                    const key = `${r},${c}`;
+                    let type = fullGrid[r][c]; // S, E, R, B, E
+
+                    cell.dataset.r = r;
+                    cell.dataset.c = c;
+                    cell.className = `cell relative rounded-md`;
+                    cell.textContent = ''; 
+
+                    // 1. 設置基礎樣式
+                    if (type === CELL_TYPE.START) {
+                        cell.classList.add('start');
+                        cell.textContent = 'S';
+                        if (currentSolution) {
+                            // 在 S 點繪製起始方向箭頭
+                            cell.innerHTML += getArrowSVG(currentSolution.initialDir, true); 
+                        }
+                    } else if (type === CELL_TYPE.END) {
+                        cell.classList.add('end-green'); 
+                        cell.textContent = 'E'; 
+                    } else if (type === CELL_TYPE.CARD_R) {
+                        cell.classList.add('card-R');
+                        cell.textContent = 'R';
+                    } else if (type === CELL_TYPE.CARD_B) {
+                        cell.classList.add('card-B');
+                        cell.textContent = 'B';
+                    }
+                    
+                    // 2. 處理移除的卡片樣式
+                    if (cardMap.has(key) && key === removedKey) {
+                        const originalType = cardMap.get(key); // 取得原始類型
+                        cell.classList.add('removed');
+                        cell.textContent = `${originalType === CELL_TYPE.CARD_R ? 'R' : 'B'} (已移除)`;
+                    }
+
+                    // 3. 處理點擊 (移除卡片)
+                    // 只有初始卡片配置中的格子才可點擊 (R或B)
+                    if (cardMap.has(key)) {
+                        cell.onclick = handleCellClick;
+                        cell.classList.add('cursor-pointer', 'hover:ring-4', 'hover:ring-yellow-400');
+                        
+                        // 處理選擇移除的樣式
+                        if (key === tileRemovedKey) {
+                            cell.classList.add('selected-to-remove');
+                        }
+                    }
+                    
+                    display.appendChild(cell);
+                }
+            }
+        }
+        
+        /** 更新結果區塊的資訊 */
+        function updateResult(result) {
+            const pathSummary = document.getElementById('path-summary');
+            const statusMessage = document.getElementById('status-message');
+            
+            pathSummary.innerHTML = '';
+            
+            // 1. 顯示成功或失敗訊息
+            if (result.isSuccess) {
+                statusMessage.innerHTML = `<span class="text-green-600 font-bold text-lg">✓ 路徑成功！</span>`;
+            } else if (result.endedAtEnd) {
+                 statusMessage.innerHTML = `<span class="text-red-600 font-bold text-lg">✗ 路徑失敗 (在終點 E 前停下或撞牆)！</span>`;
+            } else {
+                 statusMessage.innerHTML = `<span class="text-red-600 font-bold text-lg">✗ 路徑失敗 (撞牆或無限循環)！</span>`;
+            }
+
+            // 2. 路徑總結
+            const pathLength = result.path.length;
+            let pathInfo = `<p><strong>總轉折點數 (含 S 和 E):</strong> ${pathLength} 點</p>`;
+            
+            pathInfo += `<p class="text-lg font-bold ${result.isSuccess ? 'text-green-600' : 'text-red-600'}">
+                **最終結果：** ${result.isSuccess ? '成功！抵達終點 E' : '失敗！'}
+            </p>`;
+            
+            pathSummary.innerHTML = pathInfo;
+            
+        }
+
+
+        /** 尋找或檢查路徑的主控函數 */
+        function checkPathOrRevealSolution() {
+            if (!currentSolution) {
+                document.getElementById('status-message').textContent = '請先點擊「生成新的謎題」按鈕。';
+                return;
+            }
+            
+            document.getElementById('solution-details').classList.remove('hidden');
+            
+            let keyToSimulateRemoved;
+            let isRevealedSolution = false;
+            
+            if (tileRemovedKey) {
+                // 模式 1: 檢查使用者選擇移除的卡片
+                keyToSimulateRemoved = tileRemovedKey;
+                document.getElementById('check-reveal-btn').textContent = '重新檢查我移除卡片後的路徑';
+            } else {
+                // 模式 2: 顯示謎題答案
+                keyToSimulateRemoved = currentSolution.tileRemovedKey;
+                document.getElementById('check-reveal-btn').textContent = '已顯示答案';
+                isRevealedSolution = true;
+                
+                // 更新移除卡片的顯示
+                const [r, c] = currentSolution.tileRemovedKey.split(',').map(Number);
+                const type = currentSolution.initialGrid.get(currentSolution.tileRemovedKey);
+                 document.getElementById('removed-card-display').textContent = 
+                    `${type === CELL_TYPE.CARD_R ? '紅卡 (R)' : '藍卡 (B)'} @ [${r}, ${c}]`;
+            }
+            
+            // 建立模擬用的 5 張卡片配置
+            const mapToSimulate = new Map(currentSolution.initialGrid);
+            mapToSimulate.delete(keyToSimulateRemoved);
+
+            // 模擬路徑
+            const result = simulateContinuousPath(currentSolution.startPos, currentSolution.initialDir, mapToSimulate, currentSolution.endPos);
+            
+            // 繪製路徑
+            drawGrid(currentSolution.initialGrid, keyToSimulateRemoved, result, isRevealedSolution);
+            updateResult(result);
+        }
+
+
+        /** 生成謎題的主控函數 (S, E, 3R, 3B) */
+        async function generatePuzzle() {
+            // 重置 UI 狀態
+            document.getElementById('check-reveal-btn').disabled = true;
+            document.getElementById('check-reveal-btn').textContent = '正在尋找解法...';
+            document.getElementById('solution-details').classList.add('hidden');
+            document.getElementById('status-message').innerHTML = `正在尋找滿足所有約束的有解謎題... <span class="text-indigo-600 font-bold">這可能需要一些時間。</span>`;
+            document.getElementById('generate-btn').disabled = true;
+            document.getElementById('dir-name').textContent = 'N/A';
+            clearRemovalSelection(); 
+
+            // 顯示進度條
+            const progressContainer = document.getElementById('progress-container');
+            const progressBar = document.getElementById('progress-bar');
+            const progressText = document.getElementById('progress-text');
+            progressContainer.classList.remove('hidden');
+            progressBar.style.width = '0%';
+            progressText.textContent = '嘗試次數: 0 (進度 0%)';
+
+            currentSolution = null;
+            let solution = null;
+            
+            // 讓 findSolution 以異步方式運行，確保 UI 不會鎖死
+            solution = await findSolution();
+            
+            // UI 清理和最終狀態
+            progressContainer.classList.add('hidden');
+            document.getElementById('generate-btn').disabled = false;
+
+
+            if (solution) {
+                currentSolution = solution;
+                initialCardMap = solution.initialGrid;
+                startPos = solution.startPos;
+                endPos = solution.endPos;
+
+                // 2. 繪製謎題（只包含 S, E, 3R, 3B 的初始佈局）
+                drawGrid(currentSolution.initialGrid, null, null, false); 
+                
+                // 3. 更新狀態，並啟用檢查按鈕
+                document.getElementById('status-message').innerHTML = `<span class="text-green-600 font-bold text-lg">✓ 謎題已生成！請選擇要移除的卡片。</span>`;
+                document.getElementById('dir-name').textContent = DIRECTIONS[currentSolution.initialDir];
+                document.getElementById('check-reveal-btn').disabled = false;
+                document.getElementById('check-reveal-btn').textContent = '顯示自動生成的答案';
+
+            } else {
+                 document.getElementById('status-message').innerHTML = `<span class="text-red-600 font-bold text-lg">✗ 抱歉，在 ${MAX_SEARCH_ATTEMPTS} 次嘗試內未找到滿足所有**嚴格約束和超高難度要求**的有解謎題。請點擊「生成新的謎題」再試一次。</span>`;
+            }
+        }
+
+        // 頁面載入時初始化
+        window.onload = function() {
+            generatePuzzle(); 
+            
+            // 初始化網格包裹器的尺寸以正確設定 SVG 畫布大小
+            const totalSize = (CELL_WIDTH + GAP_WIDTH) * GRID_SIZE + BORDER_WIDTH * 2;
+            const gridWrapper = document.getElementById('grid-wrapper');
+            gridWrapper.style.width = `${totalSize}px`;
+            gridWrapper.style.height = `${totalSize}px`;
+        };
+
+    </script>
+</body>
+</html>
